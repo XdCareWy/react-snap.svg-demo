@@ -153,6 +153,11 @@ console.log(depth111);
 function getCount(data) {
     return [1, 3, 3, 9];
 }
+/**
+ * 获取树中各个节点下子节点的数目
+ * @param data
+ * @param floor
+ */
 function order(data, floor) {
     var rootCount = 0;
     // 1. 循环该树

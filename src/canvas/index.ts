@@ -2,6 +2,7 @@ interface IData {
   label: string;
   childNodeCount?: number; // 当前节点一共有多个子节点
   floor?: number; // 当前节点所处树的层数
+  floorNumber?: number; // 当前节点所处树的层数
   children: Array<IData> | [];
 }
 
@@ -196,6 +197,11 @@ function getCount(data: Array<IData>): Array<number> {
   return [1, 3, 3, 9];
 }
 
+/**
+ * 获取树中各个节点下子节点的数目
+ * @param data
+ * @param floor
+ */
 function order(data: Array<IData>, floor: number) {
   let rootCount = 0;
   // 1. 循环该树
