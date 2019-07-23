@@ -4,6 +4,8 @@ interface IData {
   floor?: number; // 当前节点所处树的层数
   floorNumber?: number; // 当前节点所处树的层数
   children: Array<IData> | [];
+  x?: number;
+  y?: number;
 }
 
 const d1 = [
@@ -182,7 +184,7 @@ function getTreeDepth(data: any[]) {
           each(node.children, floor + 1);
         }
       });
-    }else {
+    } else {
       max = 0;
     }
   }
@@ -211,10 +213,12 @@ function order(data: Array<IData>, floor: number) {
     // 2. 该节点是否为 叶子 节点，如果是，当前节点的childNodeCount设置为1；否则，统计当前节点下所有叶子节点的 childNodeCount
     if (node.children.length === 0) {
       node.childNodeCount = 1;
+      node.floorNumber = rootCount;
       rootCount++;
     } else {
       const leafCount = order(node.children, floor + 1);
       node.childNodeCount = leafCount;
+      node.floorNumber = rootCount;
       rootCount += leafCount;
     }
   }
@@ -223,26 +227,41 @@ function order(data: Array<IData>, floor: number) {
 order(d1, 1);
 console.log(d1);
 
-function getMock(height = 300, width = 300, depth = 0, data: any[]) {
-  // 1. 计算每一层一共有多少的节点
-  const columnCount = getCount(data);
-  // 2. 根据每一层的节点数计算每一层的x坐标
-  for (let i = 0; i < data.length; i++) {
-    const mid = data[i];
-    const columnHeight = Math.floor(height / depth);
-    const columnWidth = Math.floor(width / (columnCount[mid.floor] + 1));
-    // console.log(`floor: ${mid.floor + 1}, x: ${columnWidth}`);
-    mid.x = columnWidth * (mid.floor + 1) * (mid.floorIndex + 1);
-    mid.y = columnHeight * mid.floor + 20;
-    if (mid.children.length) {
-      getMock(height, width, depth, mid.children);
+function getMock(data: Array<IData>, XGap = 50, yGap = 50, offSetY = -10, leftX=0) {
+  for (let node of data) {
+    // @ts-ignore
+    node.y = node.floor * yGap + offSetY;
+    // @ts-ignore
+    node.x = node.childNodeCount * XGap * 0.5 + node.floorNumber*XGap + leftX;
+    if (node.children.length) {
+      // @ts-ignore
+      getMock(node.children, XGap, yGap, offSetY, node.floorNumber*XGap + leftX);
     }
   }
 }
-// getMock(300, 300, depth111, d1);
-// console.log(d1);
 
-function loopRound(data: any[]) {
+// function getMock(height = 300, width = 300, depth = 0, data: any[]) {
+//   // 1. 计算每一层一共有多少的节点
+//   const columnCount = getCount(data);
+//   // 2. 根据每一层的节点数计算每一层的x坐标
+//   for (let i = 0; i < data.length; i++) {
+//     const mid = data[i];
+//     const columnHeight = Math.floor(height / depth);
+//     const columnWidth = Math.floor(width / (columnCount[mid.floor] + 1));
+//     // console.log(`floor: ${mid.floor + 1}, x: ${columnWidth}`);
+//     mid.x = columnWidth * (mid.floor + 1) * (mid.floorIndex + 1);
+//     mid.y = columnHeight * mid.floor + 20;
+//     if (mid.children.length) {
+//       getMock(height, width, depth, mid.children);
+//     }
+//   }
+// }
+// getMock(300, 300, depth111, d1);
+getMock(d1);
+console.log(d1);
+
+function loopRound(data: Array<any>) {
+  // 画节点
   for (let i = 0; i < data.length; i++) {
     const mid = data[i];
     paintRound(ctx, { x: mid.x, y: mid.y });
@@ -253,4 +272,16 @@ function loopRound(data: any[]) {
     }
   }
 }
-// loopRound(d1);
+function loopLine(data: Array<any>) {
+  // 画直线
+  for (let node of data) {
+    if(node.children.length) {
+      for (let subNode of node.children) {
+        paintStraightLine(ctx, node, subNode)
+      }
+      loopLine(node.children)
+    }
+  }
+}
+loopRound(d1);
+loopLine(d1);
