@@ -126,40 +126,54 @@ var point2 = {
 //   point2.y
 // );
 // ctx.stroke();
-function getDepth(data) {
+function getTreeDepth(data) {
     var max = 0;
     function each(data, floor) {
         if (floor === void 0) { floor = 0; }
-        data.forEach(function (e, index) {
-            e.floor = floor;
-            e.floorIndex = index;
-            if (floor > max) {
-                max = floor;
-            }
-            if (e.children.length > 0) {
-                each(e.children, floor + 1);
-            }
-        });
+        if (data.length) {
+            data.forEach(function (node) {
+                if (floor > max) {
+                    max = floor;
+                }
+                if (node.children.length > 0) {
+                    each(node.children, floor + 1);
+                }
+            });
+        }
+        else {
+            max = 0;
+        }
     }
-    each(data, 0);
+    each(data, 1);
     return max;
 }
-var depth111 = getDepth(d1);
-// console.log(depth111);
+var depth111 = getTreeDepth(d1);
+console.log(depth111);
 // 获取每一层的节点数
 function getCount(data) {
     return [1, 3, 3, 9];
 }
 function order(data, floor) {
+    var rootCount = 0;
+    // 1. 循环该树
     for (var i = 0; i < data.length; i++) {
-        var mid = data[i];
-        console.log("floor: " + floor + ", label: " + mid.label);
-        if (mid.children.length) {
-            order(mid.children, floor + 1);
+        var node = data[i];
+        node.floor = floor;
+        // 2. 该节点是否为 叶子 节点，如果是，当前节点的childNodeCount设置为1；否则，统计当前节点下所有叶子节点的 childNodeCount
+        if (node.children.length === 0) {
+            node.childNodeCount = 1;
+            rootCount++;
+        }
+        else {
+            var leafCount = order(node.children, floor + 1);
+            node.childNodeCount = leafCount;
+            rootCount += leafCount;
         }
     }
+    return rootCount;
 }
 order(d1, 1);
+console.log(d1);
 function getMock(height, width, depth, data) {
     if (height === void 0) { height = 300; }
     if (width === void 0) { width = 300; }
@@ -179,7 +193,7 @@ function getMock(height, width, depth, data) {
         }
     }
 }
-getMock(300, 300, depth111, d1);
+// getMock(300, 300, depth111, d1);
 // console.log(d1);
 function loopRound(data) {
     for (var i = 0; i < data.length; i++) {
@@ -192,4 +206,4 @@ function loopRound(data) {
         }
     }
 }
-loopRound(d1);
+// loopRound(d1);

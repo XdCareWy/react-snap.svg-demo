@@ -1,5 +1,7 @@
 interface IData {
   label: string;
+  childNodeCount?: number; // 当前节点一共有多个子节点
+  floor?: number; // 当前节点所处树的层数
   children: Array<IData> | [];
 }
 
@@ -167,25 +169,27 @@ const point2 = {
 // );
 // ctx.stroke();
 
-function getDepth(data: any[]) {
+function getTreeDepth(data: any[]) {
   let max = 0;
   function each(data: any[], floor: number = 0) {
-    data.forEach((e, index) => {
-      e.floor = floor;
-      e.floorIndex = index;
-      if (floor > max) {
-        max = floor;
-      }
-      if (e.children.length > 0) {
-        each(e.children, floor + 1);
-      }
-    });
+    if (data.length) {
+      data.forEach(node => {
+        if (floor > max) {
+          max = floor;
+        }
+        if (node.children.length > 0) {
+          each(node.children, floor + 1);
+        }
+      });
+    }else {
+      max = 0;
+    }
   }
-  each(data, 0);
+  each(data, 1);
   return max;
 }
-const depth111 = getDepth(d1);
-// console.log(depth111);
+const depth111 = getTreeDepth(d1);
+console.log(depth111);
 
 // 获取每一层的节点数
 function getCount(data: Array<IData>): Array<number> {
@@ -193,15 +197,25 @@ function getCount(data: Array<IData>): Array<number> {
 }
 
 function order(data: Array<IData>, floor: number) {
+  let rootCount = 0;
+  // 1. 循环该树
   for (let i = 0; i < data.length; i++) {
-    const mid = data[i];
-    console.log(`floor: ${floor}, label: ${mid.label}`);
-    if (mid.children.length) {
-      order(mid.children, floor + 1);
+    const node = data[i];
+    node.floor = floor;
+    // 2. 该节点是否为 叶子 节点，如果是，当前节点的childNodeCount设置为1；否则，统计当前节点下所有叶子节点的 childNodeCount
+    if (node.children.length === 0) {
+      node.childNodeCount = 1;
+      rootCount++;
+    } else {
+      const leafCount = order(node.children, floor + 1);
+      node.childNodeCount = leafCount;
+      rootCount += leafCount;
     }
   }
+  return rootCount;
 }
 order(d1, 1);
+console.log(d1);
 
 function getMock(height = 300, width = 300, depth = 0, data: any[]) {
   // 1. 计算每一层一共有多少的节点
@@ -219,7 +233,7 @@ function getMock(height = 300, width = 300, depth = 0, data: any[]) {
     }
   }
 }
-getMock(300, 300, depth111, d1);
+// getMock(300, 300, depth111, d1);
 // console.log(d1);
 
 function loopRound(data: any[]) {
@@ -233,4 +247,4 @@ function loopRound(data: any[]) {
     }
   }
 }
-loopRound(d1);
+// loopRound(d1);
