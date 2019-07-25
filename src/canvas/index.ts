@@ -227,15 +227,27 @@ function order(data: Array<IData>, floor: number) {
 order(d1, 1);
 console.log(d1);
 
-function getMock(data: Array<IData>, XGap = 50, yGap = 50, offSetY = -10, leftX=0) {
+function getMock(
+  data: Array<IData>,
+  XGap = 50,
+  yGap = 50,
+  offSetY = -10,
+  leftX = 0
+) {
   for (let node of data) {
     // @ts-ignore
     node.y = node.floor * yGap + offSetY;
     // @ts-ignore
-    node.x = node.childNodeCount * XGap * 0.5 + node.floorNumber*XGap + leftX;
+    node.x = node.childNodeCount * XGap * 0.5 + node.floorNumber * XGap + leftX;
     if (node.children.length) {
-      // @ts-ignore
-      getMock(node.children, XGap, yGap, offSetY, node.floorNumber*XGap + leftX);
+      getMock(
+        node.children,
+        XGap,
+        yGap,
+        offSetY,
+        // @ts-ignore
+      node.floorNumber * XGap + leftX
+      );
     }
   }
 }
@@ -260,10 +272,25 @@ function getMock(data: Array<IData>, XGap = 50, yGap = 50, offSetY = -10, leftX=
 getMock(d1);
 console.log(d1);
 
+// flat树
+function flatTree(treeData: Array<IData>, res: Array<any>) {
+  for (let node of treeData) {
+    const { children: subNode, ...other } = node;
+    res.push(other);
+    if (subNode.length) {
+      flatTree(subNode, res);
+    }
+  }
+  return res;
+}
+
+console.log(flatTree(d1, []));
+
 function loopRound(data: Array<any>) {
   // 画节点
   for (let i = 0; i < data.length; i++) {
     const mid = data[i];
+
     paintRound(ctx, { x: mid.x, y: mid.y });
     ctx.font = "10px STheiti, SimHei";
     ctx.fillText(mid.label, mid.x + 3, mid.y - 3);
@@ -275,13 +302,36 @@ function loopRound(data: Array<any>) {
 function loopLine(data: Array<any>) {
   // 画直线
   for (let node of data) {
-    if(node.children.length) {
+    if (node.children.length) {
       for (let subNode of node.children) {
-        paintStraightLine(ctx, node, subNode)
+        paintStraightLine(ctx, node, subNode);
       }
-      loopLine(node.children)
+      loopLine(node.children);
     }
   }
 }
 loopRound(d1);
 loopLine(d1);
+
+const allPoint = flatTree(d1, []);
+
+// 绑定事件
+canvas.addEventListener("click", e => {
+  let eventX = e.clientX - canvas.getBoundingClientRect().left;
+  let eventY = e.clientY - canvas.getBoundingClientRect().top;
+
+  const p = allPoint.find(node => {
+    const { x, y } = node;
+    return Math.abs(x - eventX) < 5*Math.sign(45) && Math.abs(y - eventY) < 5*Math.sign(45);
+  });
+  console.log(p)
+  const input = document.getElementById("inputId") as HTMLInputElement;
+
+  if(p) {
+    input.style.left = `${eventX}px`;
+    input.style.top = `${eventY - 8}px`;
+    input.style.display = "block"
+  }else {
+    input.style.display = "none"
+  }
+});

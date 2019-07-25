@@ -1,3 +1,31 @@
+function three(obj, res) {
+    var _a;
+    for (var key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            var keys = key.split(".");
+            var firstKey = keys.shift();
+            if (firstKey) {
+                if (keys.length) {
+                    // @ts-ignore
+                    res[firstKey] = res[firstKey] || {};
+                    // @ts-ignore
+                    three((_a = {}, _a[keys.join(".")] = obj[key], _a), res[firstKey]);
+                }
+                else {
+                    // @ts-ignore
+                    res[firstKey] = obj[key];
+                }
+            }
+        }
+    }
+    return res;
+}
+var output = {
+    "a.b.c.dd": "abcdd",
+    "a.d.xx": "adxx",
+    "a.e": "ae"
+};
+console.log(three(output, {}));
 /*
 *
 var entry = {
@@ -50,7 +78,7 @@ var entry = {
         e: "ae"
     }
 };
-console.log(two(entry, "", {}));
+// console.log(two(entry, "", {}));
 /*
  *  输入： 1，2，3，5，7，8，10
  *  输出： 1~3，5，7~8，10

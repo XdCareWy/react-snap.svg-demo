@@ -9,6 +9,17 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var d1 = [
     {
         label: "&&",
@@ -193,8 +204,9 @@ function getMock(data, XGap, yGap, offSetY, leftX) {
         // @ts-ignore
         node.x = node.childNodeCount * XGap * 0.5 + node.floorNumber * XGap + leftX;
         if (node.children.length) {
+            getMock(node.children, XGap, yGap, offSetY, 
             // @ts-ignore
-            getMock(node.children, XGap, yGap, offSetY, node.floorNumber * XGap + leftX);
+            node.floorNumber * XGap + leftX);
         }
     }
 }
@@ -217,6 +229,19 @@ function getMock(data, XGap, yGap, offSetY, leftX) {
 // getMock(300, 300, depth111, d1);
 getMock(d1);
 console.log(d1);
+// flat树
+function flatTree(treeData, res) {
+    for (var _i = 0, treeData_1 = treeData; _i < treeData_1.length; _i++) {
+        var node = treeData_1[_i];
+        var subNode = node.children, other = __rest(node, ["children"]);
+        res.push(other);
+        if (subNode.length) {
+            flatTree(subNode, res);
+        }
+    }
+    return res;
+}
+console.log(flatTree(d1, []));
 function loopRound(data) {
     // 画节点
     for (var i = 0; i < data.length; i++) {
@@ -244,3 +269,23 @@ function loopLine(data) {
 }
 loopRound(d1);
 loopLine(d1);
+var allPoint = flatTree(d1, []);
+// 绑定事件
+canvas.addEventListener("click", function (e) {
+    var eventX = e.clientX - canvas.getBoundingClientRect().left;
+    var eventY = e.clientY - canvas.getBoundingClientRect().top;
+    var p = allPoint.find(function (node) {
+        var x = node.x, y = node.y;
+        return Math.abs(x - eventX) < 5 * Math.sign(45) && Math.abs(y - eventY) < 5 * Math.sign(45);
+    });
+    console.log(p);
+    var input = document.getElementById("inputId");
+    if (p) {
+        input.style.left = eventX + "px";
+        input.style.top = eventY - 8 + "px";
+        input.style.display = "block";
+    }
+    else {
+        input.style.display = "none";
+    }
+});
