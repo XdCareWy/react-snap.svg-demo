@@ -271,21 +271,48 @@ loopRound(d1);
 loopLine(d1);
 var allPoint = flatTree(d1, []);
 // 绑定事件
-canvas.addEventListener("click", function (e) {
+// canvas.addEventListener("click", e => {
+//   let eventX = e.clientX - canvas.getBoundingClientRect().left;
+//   let eventY = e.clientY - canvas.getBoundingClientRect().top;
+//
+//   const p = allPoint.find(node => {
+//     const { x, y } = node;
+//     return Math.abs(x - eventX) < 5*Math.sign(45) && Math.abs(y - eventY) < 5*Math.sign(45);
+//   });
+//   console.log(p)
+//   const input = document.getElementById("inputId") as HTMLInputElement;
+//
+//   if(p) {
+//     input.style.left = `${eventX}px`;
+//     input.style.top = `${eventY - 8}px`;
+//     input.style.display = "block"
+//   }else {
+//     input.style.display = "none"
+//   }
+// });
+var input = document.getElementById("inputId");
+var operation = document.getElementById("operationId");
+// 绑定鼠标悬停事件
+canvas.addEventListener("mousemove", function (e) {
     var eventX = e.clientX - canvas.getBoundingClientRect().left;
     var eventY = e.clientY - canvas.getBoundingClientRect().top;
     var p = allPoint.find(function (node) {
         var x = node.x, y = node.y;
         return Math.abs(x - eventX) < 5 * Math.sign(45) && Math.abs(y - eventY) < 5 * Math.sign(45);
     });
-    console.log(p);
-    var input = document.getElementById("inputId");
     if (p) {
-        input.style.left = eventX + "px";
-        input.style.top = eventY - 8 + "px";
-        input.style.display = "block";
+        operation.style.left = p.x - 50 + "px";
+        operation.style.top = p.y - 20 + "px";
+        operation.style.display = "block";
+        input.style.display = "none";
+        operation.addEventListener("click", function (e) {
+            operation.style.display = "none";
+            input.style.left = p.x - 50 + "px";
+            input.style.top = p.y - 15 + "px";
+            input.style.display = "block";
+        });
     }
     else {
-        input.style.display = "none";
+        operation.style.display = "none";
     }
 });
