@@ -10,13 +10,13 @@ interface IData {
 
 const d1 = [
   {
-    label: "A",
+    label: "&&",
     children: [
       {
-        label: "A1",
+        label: "||",
         children: [
           {
-            label: "A11",
+            label: "&&",
             children: [
               {
                 label: "A111",
@@ -33,7 +33,7 @@ const d1 = [
             ]
           },
           {
-            label: "A12",
+            label: "&&",
             children: [
               {
                 label: "A121",
@@ -50,7 +50,7 @@ const d1 = [
             ]
           },
           {
-            label: "A13",
+            label: "||",
             children: [
               {
                 label: "A131",
@@ -205,7 +205,7 @@ function getCount(data: Array<IData>): Array<number> {
  * @param floor
  */
 function order(data: Array<IData>, floor: number) {
-  let rootCount = 0;
+  let rootCount = 0; // 记录每个子树下的节点数目
   // 1. 循环该树
   for (let i = 0; i < data.length; i++) {
     const node = data[i];

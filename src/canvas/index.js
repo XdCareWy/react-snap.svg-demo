@@ -11,13 +11,13 @@ var __assign = (this && this.__assign) || function () {
 };
 var d1 = [
     {
-        label: "A",
+        label: "&&",
         children: [
             {
-                label: "A1",
+                label: "||",
                 children: [
                     {
-                        label: "A11",
+                        label: "&&",
                         children: [
                             {
                                 label: "A111",
@@ -34,7 +34,7 @@ var d1 = [
                         ]
                     },
                     {
-                        label: "A12",
+                        label: "&&",
                         children: [
                             {
                                 label: "A121",
@@ -51,7 +51,7 @@ var d1 = [
                         ]
                     },
                     {
-                        label: "A13",
+                        label: "||",
                         children: [
                             {
                                 label: "A131",
@@ -159,7 +159,7 @@ function getCount(data) {
  * @param floor
  */
 function order(data, floor) {
-    var rootCount = 0;
+    var rootCount = 0; // 记录每个子树下的节点数目
     // 1. 循环该树
     for (var i = 0; i < data.length; i++) {
         var node = data[i];
