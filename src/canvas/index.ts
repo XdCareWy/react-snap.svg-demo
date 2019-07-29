@@ -1,3 +1,4 @@
+// @ts-ignore
 interface IData {
   label: string;
   childNodeCount?: number; // 当前节点一共有多个子节点
@@ -191,8 +192,7 @@ function getTreeDepth(data: any[]) {
   each(data, 1);
   return max;
 }
-const depth111 = getTreeDepth(d1);
-console.log(depth111);
+// const depth111 = getTreeDepth(d1);
 
 // 获取每一层的节点数
 function getCount(data: Array<IData>): Array<number> {
@@ -310,6 +310,9 @@ function loopLine(data: Array<any>) {
     }
   }
 }
+
+canvas.width = 650
+
 loopRound(d1);
 loopLine(d1);
 

@@ -7,24 +7,18 @@
     "outDir": "./dist/",
     "strict": true,
     "esModuleInterop": true,
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "resolveJsonModule": true,
-    "isolatedModules": false,
+    "isolatedModules": true,
     "noEmit": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "types": ["node"]
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src/react-canvas"]
 }

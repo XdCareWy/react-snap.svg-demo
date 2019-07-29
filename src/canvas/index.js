@@ -267,6 +267,7 @@ function loopLine(data) {
         }
     }
 }
+canvas.width = 650;
 loopRound(d1);
 loopLine(d1);
 var allPoint = flatTree(d1, []);
