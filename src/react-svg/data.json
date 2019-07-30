@@ -1,0 +1,64 @@
+[
+  {
+    "id": 0,
+    "type": "start",
+    "x": 50,
+    "y": 100,
+    "next": 1
+  },
+  {
+    "id": 1,
+    "type": "switch",
+    "x": 100,
+    "y": 100,
+    "condition": "({d|京享值|code}==={s|n|0})&&({d|成长值|code}==={s|n|0})",
+    "success": 2,
+    "fail": 3
+  },
+  {
+    "id": 2,
+    "type": "switch",
+    "x": 150,
+    "y": 100,
+    "condition": "{d|京享值|result}>{s|n|1000}",
+    "success": 4,
+    "fail": 5
+  },
+  {
+    "id": 3,
+    "type": "end",
+    "x": 100,
+    "y": 50,
+    "label": "接口错误"
+  },
+  {
+    "id": 4,
+    "type": "switch",
+    "x": 200,
+    "y": 100,
+    "condition": "{d|成长值|result}>{s|n|500}",
+    "success": 6,
+    "fail": 7
+  },
+  {
+    "id": 5,
+    "type": "end",
+    "x": 150,
+    "y": 150,
+    "label": "京享值不足"
+  },
+  {
+    "id": 6,
+    "type": "end",
+    "x": 250,
+    "y": 100,
+    "label": "可以参加活动"
+  },
+  {
+    "id": 7,
+    "type": "end",
+    "x": 200,
+    "y": 150,
+    "label": "成长值不足"
+  }
+]
