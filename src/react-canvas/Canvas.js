@@ -1,33 +1,124 @@
 import React, { Component } from "react";
+import "./canvas.css";
 
 class Canvas extends Component {
   constructor(props) {
     super(props);
+    this.state = {
+      width: 650,
+      height: 300,
+      value: [],
+      inputValue: ""
+    };
   }
 
-  componentDidMount() {
-    const { treeData } = this.props;
+  static getDerivedStateFromProps(props, state) {
+    const { treeData } = props;
     const copyTreeData = JSON.parse(JSON.stringify(treeData));
     Canvas.transformTree(copyTreeData);
     Canvas.computeTreeDistance(copyTreeData);
-
-    console.log(copyTreeData);
-
     const flatTree = Canvas.flatTree(copyTreeData);
-    console.log(flatTree);
+    const canvasW = copyTreeData[0].childNodeCount * 50;
+    const canvasH = Math.max.apply(Math, flatTree.map(item => item.floor)) * 50;
+    return {
+      ...state,
+      width: canvasW,
+      height: canvasH,
+      value: copyTreeData
+    };
+  }
 
+  componentDidMount() {
+    const { value } = this.state;
+    Canvas.renderTree(value);
+  }
+
+  handleInput = e => {
+    const v = e.target.value;
+    this.setState({ inputValue: v });
+  };
+
+  handleOk = () => {
+    const { inputValue } = this.state;
+    console.log(inputValue);
+  };
+  handleCancel = () => {
+
+  }
+
+  handleCanvas = e => {
+    const {value} = this.state
     const canvasDom = document.getElementById("canvas");
-    const ctx = canvasDom.getContext("2d");
-    Canvas.loopRound(ctx, copyTreeData);
-    Canvas.loopLine(ctx, copyTreeData);
+    let eventX = e.clientX - canvasDom.getBoundingClientRect().left;
+    let eventY = e.clientY - canvasDom.getBoundingClientRect().top;
+    const flatTreeData = Canvas.flatTree(value);
+    const p = flatTreeData.find(node => {
+      const { x, y } = node;
+      return (
+        Math.abs(x - eventX) < 5 * Math.sign(45) &&
+        Math.abs(y - eventY) < 5 * Math.sign(45)
+      );
+    });
+    console.log(p)
   }
 
   render() {
+    const { width, height } = this.state;
     return (
-      <div>
-        <canvas id="canvas" width={650} height={300}/>
+      <div className="canvasBox">
+        <canvas id="canvas" width={width} height={height} onMouseMove={this.handleCanvas} />
+        <div id="operationId" className="operationBox">
+          <div className="symbol">||</div>
+          <div className="symbol">&&</div>
+          <div className="symbol">删除</div>
+        </div>
+        <div className="maskBox">
+          <div id="inputId">
+            <input onChange={this.handleInput} type="text" />
+            <button onClick={this.handleOk}>确定</button>
+            <button onClick={this.handleCancel}>取消</button>
+          </div>
+        </div>
       </div>
     );
+  }
+
+  static renderTree(value) {
+    const canvasDom = document.getElementById("canvas");
+    const ctx = canvasDom.getContext("2d");
+    Canvas.loopRound(ctx, value);
+    Canvas.loopLine(ctx, value);
+    const operation = document.getElementById("operationId");
+    const inputDom = document.getElementById("inputId");
+    const flatTree = Canvas.flatTree(value);
+    // 绑定鼠标悬停事件
+    canvasDom.addEventListener("mousemove", e => {
+      console.log(`aaa: ${e.clientX}`)
+      console.log(`canvasDom: ${canvasDom.getBoundingClientRect().left}`)
+      let eventX = e.clientX - canvasDom.getBoundingClientRect().left;
+      let eventY = e.clientY - canvasDom.getBoundingClientRect().top;
+      const p = flatTree.find(node => {
+        const { x, y } = node;
+        return (
+          Math.abs(x - eventX) < 5 * Math.sign(45) &&
+          Math.abs(y - eventY) < 5 * Math.sign(45)
+        );
+      });
+      if (p) {
+        operation.style.left = `${p.x - 50}px`;
+        operation.style.top = `${p.y - 20}px`;
+        operation.style.display = "block";
+        operation.addEventListener("click", e => {
+          operation.style.display = "none";
+          inputDom.parentElement.style.display = "block";
+          inputDom.style.left = `${p.x - 50}px`;
+          inputDom.style.top = `${p.y - 15}px`;
+          inputDom.style.display = "block";
+        });
+      } else {
+        operation.style.display = "none";
+      }
+    });
   }
 
   static loopRound(ctx, data) {

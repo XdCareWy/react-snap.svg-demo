@@ -60,11 +60,37 @@
       },
       {
         "label": "A2",
-        "children": []
+        "children": [
+          {
+            "label": "A21",
+            "children": []
+          },
+          {
+            "label": "A22",
+            "children": []
+          },
+          {
+            "label": "A23",
+            "children": []
+          }
+        ]
       },
       {
         "label": "A3",
-        "children": []
+        "children": [
+          {
+            "label": "A31",
+            "children": []
+          },
+          {
+            "label": "A32",
+            "children": []
+          },
+          {
+            "label": "A33",
+            "children": []
+          }
+        ]
       }
     ]
   }

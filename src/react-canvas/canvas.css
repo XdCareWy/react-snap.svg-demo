@@ -1,0 +1,31 @@
+.canvasBox {
+  width: 650px;
+  height: 300px;
+  overflow: auto;
+  background-color: white;
+  position: relative;
+    margin: 20px 0 0 100px;
+}
+.operationBox {
+  position: absolute;
+  display: none;
+  background-color: lightgray;
+}
+.symbol {
+  font-size: 10px;
+  display: inline-block;
+  margin: 2px 5px;
+  cursor: pointer;
+}
+.maskBox {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+    display: none;
+}
+.maskBox > div {
+  position: absolute;
+    opacity: 1;
+}
