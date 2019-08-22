@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import "./index.css";
-import { TYPE, data } from "./data1";
+import { TYPE, data as sourceData } from "./data1";
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
@@ -9,7 +9,16 @@ const reactHeight = 20;
 const reactBorderRadius = 6;
 
 class IndexSvg extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      selectedNode: {},
+      data: sourceData,
+    };
+  }
+
   componentDidMount() {
+    const { data } = this.state;
     this.renderSvg(data);
   }
 
@@ -24,6 +33,7 @@ class IndexSvg extends Component {
         rectStart.click(() => {
           const { x, y, width, height } = rectStart.getBBox();
           this.showOperation(x, y, width, height);
+          this.setState({ selectedNode: node });
         });
       }
       // 类型为rhombus时，画菱形
@@ -33,6 +43,7 @@ class IndexSvg extends Component {
           const { x, y, width, height } = rhombusLogic.getBBox();
           console.log(rhombusLogic.getBBox());
           this.showOperation(x, y, width, height);
+          this.setState({ selectedNode: node });
         });
       }
       // 画线
@@ -71,7 +82,7 @@ class IndexSvg extends Component {
   };
 
   paintLine = (svg, fromX, fromY, toX, toY) => {
-    const p1 = svg.paper.path("M0,0 L0,4 L3,2 L0,0").attr({
+    const p1 = svg.path("M0,0 L0,4 L3,2 L0,0").attr({
       fill: "rgb(49, 208, 198)",
     });
     const m2 = p1.marker(0, 0, 12, 12, 3, 2);
@@ -139,6 +150,30 @@ class IndexSvg extends Component {
       });
   };
 
+  handleInfo = () => {
+    const { selectedNode } = this.state;
+    console.log(selectedNode);
+    //  todo： 展示该节点的信息
+  };
+
+  handleRemove = () => {
+    const { selectedNode } = this.state;
+    console.log(selectedNode);
+    //  todo： 删除该节点及其子节点
+  };
+
+  handlePlus = () => {
+    const { selectedNode } = this.state;
+    console.log(selectedNode);
+    //  todo： 增加新的节点
+  };
+
+  handleConfig = () => {
+    const { selectedNode } = this.state;
+    console.log(selectedNode);
+    //  todo： 配置该节点的信息
+  };
+
   render() {
     return (
       <Fragment>
@@ -174,10 +209,10 @@ class IndexSvg extends Component {
             }}
             className="join-halo">
             <div>
-              <div className="remove nw" />
-              <div className=" remove1 nw1" />
-              <div className=" remove2 nw2" />
-              <div className=" remove3 nw3" />
+              <div className="info" onClick={this.handleInfo} />
+              <div className="remove" onClick={this.handleRemove} />
+              <div className="plus" onClick={this.handlePlus} />
+              <div className="config" onClick={this.handleConfig} />
             </div>
           </div>
         </div>
