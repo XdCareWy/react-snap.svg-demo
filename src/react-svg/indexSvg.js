@@ -28,7 +28,7 @@ class IndexSvg extends Component {
       const { id, type, prevNode, nextLeftNode, nextRightNode, label, condition, x, y } = node;
       // 类型为start时，画矩形开始图
       if (type === TYPE.start || type === TYPE.rect) {
-        const rectStart = this.paintRectText(svg, x, y, label);
+        const rectStart = this.paintRectText(svg, type === TYPE.start?x+12:x, y, label);
         // 绑定事件
         rectStart.click(() => {
           const { x, y, width, height } = rectStart.getBBox();
@@ -39,6 +39,8 @@ class IndexSvg extends Component {
       // 类型为rhombus时，画菱形
       if (type === TYPE.rhombus) {
         const rhombusLogic = this.paintRhombus(svg, x, y);
+        // this.paintText(svg, x, y, label);
+        this.paintText(svg, x+40, y-16, condition);
         rhombusLogic.click(() => {
           const { x, y, width, height } = rhombusLogic.getBBox();
           console.log(rhombusLogic.getBBox());
@@ -50,12 +52,12 @@ class IndexSvg extends Component {
       if (nextLeftNode) {
         const { x: subX, y: subY } = data.find(item => item.id === nextLeftNode);
         this.paintLine(svg, x, y + reactHeight / 2, subX, subY - reactHeight / 2);
-        svg.text(x + 2, y + (subY - y) / 2, "T");
+        svg.text(x - 25, y + (subY - y) / 2, "Yes").attr({"font-size": 12});
       }
       if (nextRightNode) {
         const { x: subX, y: subY } = data.find(item => item.id === nextRightNode);
         this.paintLine(svg, x + reactWidth / 2, y, subX - reactWidth / 2, subY);
-        svg.text(x + (subX - x) / 2, y - 2, "F");
+        svg.text(x + (subX - x) / 2, y + 12, "No").attr({"font-size": 10});
       }
     }
   };
@@ -83,12 +85,12 @@ class IndexSvg extends Component {
 
   paintLine = (svg, fromX, fromY, toX, toY) => {
     const p1 = svg.path("M0,0 L0,4 L3,2 L0,0").attr({
-      fill: "rgb(49, 208, 198)",
+      fill: "rgb(143, 143, 143)",
     });
     const m2 = p1.marker(0, 0, 12, 12, 3, 2);
     return svg.line(fromX, fromY, toX, toY).attr({
       fill: "transparent",
-      stroke: "rgb(49, 208, 198)",
+      stroke: "rgb(143, 143, 143)",
       "stroke-width": 2,
       "stroke-dasharray": 0,
       "marker-end": m2,
@@ -105,7 +107,8 @@ class IndexSvg extends Component {
 
   paintRectText(svg, x, y, text) {
     const textE = this.paintText(svg, x, y, text);
-    const rectE = this.paintRect(svg, x, y);
+    const {width} = textE.getBBox()
+    const rectE = this.paintRect(svg, x, y, width+10);
     const g = svg.g(rectE, textE);
     // 鼠标放上去展示小手
     g.addClass("cursor-pointer");
@@ -113,11 +116,13 @@ class IndexSvg extends Component {
   }
 
   paintText(svg, x, y, text) {
-    return svg.text(x - reactWidth / 2 + 4, y - reactHeight / 2 + 15, text);
+    return svg.text(x - reactWidth / 2 + 4, y - reactHeight / 2 + 15, text).attr({
+      "font-size": 12
+    });
   }
 
-  paintRect(svg, x, y) {
-    return svg.rect(x - reactWidth / 2, y - reactHeight / 2, reactWidth, reactHeight, 0, 0).attr({
+  paintRect(svg, x, y, width) {
+    return svg.rect(x - reactWidth / 2, y - reactHeight / 2, width, reactHeight, 0, 0).attr({
       fill: "transparent",
       stroke: "rgb(49, 208, 198)",
       "stroke-width": 2,
