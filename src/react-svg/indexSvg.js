@@ -22,13 +22,70 @@ class IndexSvg extends Component {
     this.renderSvg(data);
   }
 
+  paintRoundText = (svg, x, y, r, text, id="") => {
+    const textSvg = svg.text(x, y, text);
+    const roundSvg = svg.circle(x, y, r).attr({
+      fill: "rgb(215,216,217)",
+      "stroke-width": 1,
+      "stroke-dasharray": 0,
+      stroke: "gray",
+    });
+
+    const g = svg.g(roundSvg, textSvg).attr({id: id});
+    g.hover(function(){
+      g.select("circle").animate({r: r+2}, 100)
+    },function(){
+      g.select("circle").animate({r: r}, 100)
+    });
+    return g;
+  };
+
   renderSvg = data => {
     const svg = Snap("#svgId");
+    svg.line(250, 50, 350, 50).attr({
+      fill: "transparent",
+      stroke: "rgb(143, 143, 143)",
+      "stroke-width": 2,
+      "stroke-dasharray": 0,
+    });
+    svg.line(250, 50, 250, 120).attr({
+      fill: "transparent",
+      stroke: "rgb(143, 143, 143)",
+      "stroke-width": 2,
+      "stroke-dasharray": 0,
+    });
+    var f = svg.filter('<feGaussianBlur stdDeviation="2"/>');
+    this.paintRoundText(svg, 250, 50, 5);
+    this.paintRoundText(svg,350, 50, 12, "F", "F")
+    this.paintRoundText(svg, 250, 120, 12, "T", "T");
+
+
+
+    const x = 550;
+    const y = 150;
+    const r = 90;
+    svg.circle(x, y, r).attr({
+      fill: "rgb(244,244,244)",
+      "stroke-width": 1,
+      "stroke-dasharray": 0,
+      stroke: "gray",
+    });
+    // this.paintRoundText(svg, x, y-r, 12, "+");
+    // this.paintRoundText(svg, x+Math.cos(Math.PI/10)*r, y-Math.sin(Math.PI/10)*r, 12, "-");
+    // this.paintRoundText(svg, 400, 120, 12, "E");
+    const oo = ['+', '-', 'E', 'P', 'R', 'J', 'L'];
+    const deg = 2 * Math.PI / oo.length;
+    for (let i = 0; i < oo.length; i++) {
+      const tmp = oo[i];
+      this.paintRoundText(svg, x+Math.cos(deg*i)*r, y-Math.sin(deg*i)*r, 12, tmp);
+    }
+
+
     for (let node of data) {
       const { id, type, prevNode, nextLeftNode, nextRightNode, label, condition, x, y } = node;
       // 类型为start时，画矩形开始图
       if (type === TYPE.start || type === TYPE.rect) {
-        const rectStart = this.paintRectText(svg, type === TYPE.start?x+12:x, y, label);
+        const rectStart = this.paintRectText(svg, type === TYPE.start ? x + 12 : x, y, label);
         // 绑定事件
         rectStart.click(() => {
           const { x, y, width, height } = rectStart.getBBox();
@@ -40,7 +97,7 @@ class IndexSvg extends Component {
       if (type === TYPE.rhombus) {
         const rhombusLogic = this.paintRhombus(svg, x, y);
         // this.paintText(svg, x, y, label);
-        this.paintText(svg, x+40, y-16, condition);
+        this.paintText(svg, x + 40, y - 16, condition);
         rhombusLogic.click(() => {
           const { x, y, width, height } = rhombusLogic.getBBox();
           console.log(rhombusLogic.getBBox());
@@ -52,12 +109,12 @@ class IndexSvg extends Component {
       if (nextLeftNode) {
         const { x: subX, y: subY } = data.find(item => item.id === nextLeftNode);
         this.paintLine(svg, x, y + reactHeight / 2, subX, subY - reactHeight / 2);
-        svg.text(x - 25, y + (subY - y) / 2, "Yes").attr({"font-size": 12});
+        svg.text(x - 25, y + (subY - y) / 2, "Yes").attr({ "font-size": 12 });
       }
       if (nextRightNode) {
         const { x: subX, y: subY } = data.find(item => item.id === nextRightNode);
         this.paintLine(svg, x + reactWidth / 2, y, subX - reactWidth / 2, subY);
-        svg.text(x + (subX - x) / 2, y + 12, "No").attr({"font-size": 10});
+        svg.text(x + (subX - x) / 2, y + 12, "No").attr({ "font-size": 10 });
       }
     }
   };
@@ -107,8 +164,8 @@ class IndexSvg extends Component {
 
   paintRectText(svg, x, y, text) {
     const textE = this.paintText(svg, x, y, text);
-    const {width} = textE.getBBox()
-    const rectE = this.paintRect(svg, x, y, width+10);
+    const { width } = textE.getBBox();
+    const rectE = this.paintRect(svg, x, y, width + 10);
     const g = svg.g(rectE, textE);
     // 鼠标放上去展示小手
     g.addClass("cursor-pointer");
@@ -117,7 +174,7 @@ class IndexSvg extends Component {
 
   paintText(svg, x, y, text) {
     return svg.text(x - reactWidth / 2 + 4, y - reactHeight / 2 + 15, text).attr({
-      "font-size": 12
+      "font-size": 12,
     });
   }
 
