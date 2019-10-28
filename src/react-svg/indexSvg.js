@@ -1,6 +1,7 @@
 import React, { Component, Fragment } from "react";
 import "./index.css";
 import { TYPE, data as sourceData } from "./data1";
+import {NodeOperation} from "./basicGraph/NodeOperation"
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
@@ -23,7 +24,9 @@ class IndexSvg extends Component {
   }
 
   paintRoundText = (svg, x, y, r, text, id="") => {
-    const textSvg = svg.text(x, y, text);
+    const textSvg = svg.text(x, y, text).attr({
+      class: "text-center",
+    });
     const roundSvg = svg.circle(x, y, r).attr({
       fill: "rgb(215,216,217)",
       "stroke-width": 1,
@@ -42,6 +45,7 @@ class IndexSvg extends Component {
 
   renderSvg = data => {
     const svg = Snap("#svgId");
+    /****************开始*******************/
     svg.line(250, 50, 350, 50).attr({
       fill: "transparent",
       stroke: "rgb(143, 143, 143)",
@@ -54,32 +58,34 @@ class IndexSvg extends Component {
       "stroke-width": 2,
       "stroke-dasharray": 0,
     });
-    var f = svg.filter('<feGaussianBlur stdDeviation="2"/>');
     this.paintRoundText(svg, 250, 50, 5);
-    this.paintRoundText(svg,350, 50, 12, "F", "F")
+    this.paintRoundText(svg,350, 50, 12, "F", "F").click(() => {
+      console.log(1)
+      const r = svg.select('#operationId')
+      r.attr({
+        class: "show"
+      })
+    })
     this.paintRoundText(svg, 250, 120, 12, "T", "T");
 
+    NodeOperation(svg, 550,150, 90)
 
-
-    const x = 550;
-    const y = 150;
-    const r = 90;
-    svg.circle(x, y, r).attr({
-      fill: "rgb(244,244,244)",
-      "stroke-width": 1,
-      "stroke-dasharray": 0,
-      stroke: "gray",
-    });
-    // this.paintRoundText(svg, x, y-r, 12, "+");
-    // this.paintRoundText(svg, x+Math.cos(Math.PI/10)*r, y-Math.sin(Math.PI/10)*r, 12, "-");
-    // this.paintRoundText(svg, 400, 120, 12, "E");
-    const oo = ['+', '-', 'E', 'P', 'R', 'J', 'L'];
-    const deg = 2 * Math.PI / oo.length;
-    for (let i = 0; i < oo.length; i++) {
-      const tmp = oo[i];
-      this.paintRoundText(svg, x+Math.cos(deg*i)*r, y-Math.sin(deg*i)*r, 12, tmp);
-    }
-
+    // const x = 550;
+    // const y = 150;
+    // const r = 90;
+    // svg.circle(x, y, r).attr({
+    //   fill: "rgb(244,244,244)",
+    //   "stroke-width": 1,
+    //   "stroke-dasharray": 0,
+    //   stroke: "gray",
+    // });
+    // const oo = ['+', '-', 'E', 'P', 'R', 'J', 'L'];
+    // const deg = 2 * Math.PI / oo.length;
+    // for (let i = 0; i < oo.length; i++) {
+    //   const tmp = oo[i];
+    //   this.paintRoundText(svg, x+Math.cos(deg*i)*r, y-Math.sin(deg*i)*r, 12, tmp);
+    // }
+    /****************结束*******************/
 
     for (let node of data) {
       const { id, type, prevNode, nextLeftNode, nextRightNode, label, condition, x, y } = node;
