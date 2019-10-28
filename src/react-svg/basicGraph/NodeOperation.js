@@ -5,6 +5,7 @@
  * @param y y坐标
  * @param r 半径
  * @param operationObj 分布在r上的小圆圈操作
+ * @param text 中心位置小圈里的文本
  * @returns {React.ReactSVGElement | never}
  * @constructor
  */
@@ -16,10 +17,11 @@ export function NodeOperation(svg, x, y, r, operationObj, text) {
     "stroke-dasharray": 0,
     stroke: "gray",
   });
-
+  // 中心位置的小圈
   const centerG = paintRoundText(svg, x, y, 15, text);
   const deg = (2 * Math.PI) / operationObj.length;
   const oo = [];
+  // 所有大圈周围的小圈
   for (let i = 0; i < operationObj.length; i++) {
     const {
       label,
@@ -45,6 +47,7 @@ export function NodeOperation(svg, x, y, r, operationObj, text) {
   return g;
 }
 
+// 绘制大圈里中心位置的小圈
 function paintRoundText(svg, x, y, r, text) {
   const textSvg = svg.text(x, y, text).attr({
     class: "text-center",
@@ -60,6 +63,7 @@ function paintRoundText(svg, x, y, r, text) {
   return svg.g(roundSvg, textSvg);
 }
 
+// 绘制大圈周围的单个小圈操作
 function paintCircleText(svg, x, y, r, text, id = "") {
   const textSvg = svg.text(x, y, text).attr({
     class: "text-center",

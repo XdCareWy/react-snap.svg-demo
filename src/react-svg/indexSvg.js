@@ -50,31 +50,55 @@ class IndexSvg extends Component {
     const svg = Snap("#svgId");
     /****************开始*******************/
     const x = 400;
-    const y = 100;
-    svg.line(x, y, x + 100, y).attr({
+    const y = 50;
+    const w = 100;
+    const h = 70;
+    const x_c = x;
+    const y_c = y + h;
+    const x_t = x;
+    const y_t = y + 2 * h;
+    const x_f = x + w;
+    const y_f = y + h;
+
+    // 1. 菱形 - 连接点 的line
+    svg.line(x, y, x_c, y_c).attr({
       fill: "transparent",
       stroke: "rgb(143, 143, 143)",
       "stroke-width": 2,
       "stroke-dasharray": 0,
     });
-    svg.line(x, y, x, y + 70).attr({
+    // 2. 连接点 - F 的line
+    svg.line(x_c, y_c, x_f, y_f).attr({
       fill: "transparent",
       stroke: "rgb(143, 143, 143)",
       "stroke-width": 2,
       "stroke-dasharray": 0,
     });
-    this.paintRoundText(svg, x, y, 5);
-    const falseE = this.paintRoundText(svg, x + 100, y, 12, "F", "F")
+    // 3. 连接点 - T 的line
+    svg.line(x_c, y_c, x_t, y_t).attr({
+      fill: "transparent",
+      stroke: "rgb(143, 143, 143)",
+      "stroke-width": 2,
+      "stroke-dasharray": 0,
+    });
+
+    // 1. 画菱形
+    this.paintRhombus(svg, x, y);
+    // 3. 画连接点
+    this.paintRoundText(svg, x_c, y_c, 5);
+    // 4. 画F
+    const falseE = this.paintRoundText(svg, x_f, y_f, 12, "F", "F");
     falseE.click(() => {
       const r = svg.select("#operationId");
       r && r.remove();
-      NodeOperation(svg, x+100, y, 50, operationObj, "F");
+      NodeOperation(svg, x_f, y_f, 50, operationObj, "F");
     });
-    const trueE = this.paintRoundText(svg, x, y + 70, 12, "T", "T");
+    // 5. 画
+    const trueE = this.paintRoundText(svg, x_t, y_t, 12, "T", "T");
     trueE.click(() => {
       const r = svg.select("#operationId");
       r && r.remove();
-      NodeOperation(svg, x, y+70, 50, operationObj, "T");
+      NodeOperation(svg, x_t, y_t, 50, operationObj, "T");
     });
 
     const operationObj = [
@@ -267,8 +291,8 @@ class IndexSvg extends Component {
       ])
       .attr({
         class: "cursor-pointer",
-        fill: "transparent",
-        stroke: "rgb(124, 104, 252)",
+        fill: "rgb(244,244,244)",
+        stroke: "gray",
         "stroke-width": 2,
         "stroke-dasharray": 0,
       });
