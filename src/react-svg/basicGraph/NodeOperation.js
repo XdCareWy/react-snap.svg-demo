@@ -1,24 +1,63 @@
-export function NodeOperation(svg, x, y, r) {
+/**
+ *
+ * @param svg
+ * @param x x坐标
+ * @param y y坐标
+ * @param r 半径
+ * @param operationObj 分布在r上的小圆圈操作
+ * @returns {React.ReactSVGElement | never}
+ * @constructor
+ */
+export function NodeOperation(svg, x, y, r, operationObj, text) {
+  // 外围大圈
   const circleE = svg.circle(x, y, r).attr({
     fill: "rgb(244,244,244)",
     "stroke-width": 1,
     "stroke-dasharray": 0,
     stroke: "gray",
   });
-  const operationObj = ["+", "-", "E", "P", "R", "J", "L"];
+
+  const centerG = paintRoundText(svg, x, y, 15, text);
   const deg = (2 * Math.PI) / operationObj.length;
   const oo = [];
   for (let i = 0; i < operationObj.length; i++) {
-    const tmp = operationObj[i];
-    const tmpE = paintCircleText(svg, x + Math.cos(deg * i) * r, y - Math.sin(deg * i) * r, 12, tmp);
+    const {
+      label,
+      clickFn,
+      attr: { circleFill, circleStroke, textFill },
+    } = operationObj[i];
+    const tmpE = paintCircleText(svg, x + Math.cos(deg * i) * r, y - Math.sin(deg * i) * r, 12, label);
+    tmpE.select("circle").attr({
+      fill: circleFill,
+      stroke: circleStroke,
+    });
+    tmpE.select("text").attr({ fill: textFill });
+    tmpE.click(() => {
+      clickFn(svg, tmpE, label);
+    });
     oo.push(tmpE);
   }
-  const g = svg.g(circleE, ...oo);
+  const g = svg.g(circleE, centerG, ...oo);
   g.attr({
     class: "hide",
     id: "operationId",
   });
   return g;
+}
+
+function paintRoundText(svg, x, y, r, text) {
+  const textSvg = svg.text(x, y, text).attr({
+    class: "text-center",
+    "stroke-width": 5,
+    fill: "white",
+  });
+  const roundSvg = svg.circle(x, y, r).attr({
+    fill: "#598FE2",
+    "stroke-width": 1,
+    "stroke-dasharray": 0,
+    stroke: "#38649E",
+  });
+  return svg.g(roundSvg, textSvg);
 }
 
 function paintCircleText(svg, x, y, r, text, id = "") {

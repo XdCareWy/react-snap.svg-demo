@@ -1,7 +1,7 @@
 import React, { Component, Fragment } from "react";
 import "./index.css";
 import { TYPE, data as sourceData } from "./data1";
-import {NodeOperation} from "./basicGraph/NodeOperation"
+import { NodeOperation } from "./basicGraph/NodeOperation";
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
@@ -23,7 +23,7 @@ class IndexSvg extends Component {
     this.renderSvg(data);
   }
 
-  paintRoundText = (svg, x, y, r, text, id="") => {
+  paintRoundText = (svg, x, y, r, text, id = "") => {
     const textSvg = svg.text(x, y, text).attr({
       class: "text-center",
     });
@@ -34,41 +34,97 @@ class IndexSvg extends Component {
       stroke: "gray",
     });
 
-    const g = svg.g(roundSvg, textSvg).attr({id: id});
-    g.hover(function(){
-      g.select("circle").animate({r: r+2}, 100)
-    },function(){
-      g.select("circle").animate({r: r}, 100)
-    });
+    const g = svg.g(roundSvg, textSvg).attr({ id: id });
+    g.hover(
+      function() {
+        g.select("circle").animate({ r: r + 2 }, 100);
+      },
+      function() {
+        g.select("circle").animate({ r: r }, 100);
+      }
+    );
     return g;
   };
 
   renderSvg = data => {
     const svg = Snap("#svgId");
     /****************开始*******************/
-    svg.line(250, 50, 350, 50).attr({
+    const x = 400;
+    const y = 100;
+    svg.line(x, y, x + 100, y).attr({
       fill: "transparent",
       stroke: "rgb(143, 143, 143)",
       "stroke-width": 2,
       "stroke-dasharray": 0,
     });
-    svg.line(250, 50, 250, 120).attr({
+    svg.line(x, y, x, y + 70).attr({
       fill: "transparent",
       stroke: "rgb(143, 143, 143)",
       "stroke-width": 2,
       "stroke-dasharray": 0,
     });
-    this.paintRoundText(svg, 250, 50, 5);
-    this.paintRoundText(svg,350, 50, 12, "F", "F").click(() => {
-      console.log(1)
-      const r = svg.select('#operationId')
-      r.attr({
-        class: "show"
-      })
-    })
-    this.paintRoundText(svg, 250, 120, 12, "T", "T");
+    this.paintRoundText(svg, x, y, 5);
+    const falseE = this.paintRoundText(svg, x + 100, y, 12, "F", "F")
+    falseE.click(() => {
+      const r = svg.select("#operationId");
+      r && r.remove();
+      NodeOperation(svg, x+100, y, 50, operationObj, "F");
+    });
+    const trueE = this.paintRoundText(svg, x, y + 70, 12, "T", "T");
+    trueE.click(() => {
+      const r = svg.select("#operationId");
+      r && r.remove();
+      NodeOperation(svg, x, y+70, 50, operationObj, "T");
+    });
 
-    NodeOperation(svg, 550,150, 90)
+    const operationObj = [
+      {
+        label: "+",
+        clickFn: function(svg, e, label) {
+          console.log(label);
+        },
+        attr: {
+          circleStroke: "#38649E",
+          circleFill: "#E6F1FD",
+          textFill: "#336CA8",
+        },
+      },
+      {
+        label: "-",
+        clickFn: function(svg, e, label) {
+          console.log(label);
+        },
+        attr: {
+          circleStroke: "#920000",
+          circleFill: "#FCDBE0",
+          textFill: "#C71723",
+        },
+      },
+      {
+        label: "E",
+        clickFn: function(svg, e, label) {
+          console.log(label);
+        },
+        attr: {
+          circleStroke: "#38649E",
+          circleFill: "#E6F1FD",
+          textFill: "#336CA8",
+        },
+      },
+      {
+        label: "C",
+        clickFn: function(svg, e, label) {
+          console.log(label);
+          const r = svg.select("#operationId");
+          r.remove();
+        },
+        attr: {
+          circleStroke: "red",
+          circleFill: "#FCDBE0",
+          textFill: "#C71723",
+        },
+      },
+    ];
 
     // const x = 550;
     // const y = 150;
