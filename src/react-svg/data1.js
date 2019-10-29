@@ -1,18 +1,18 @@
 const TYPE = {
   start: 1,
   rect: 2,
-  rhombus: 3
+  rhombus: 3,
 };
 const STATUS = {
   none: 0,
   true: 1,
-  false: 2
+  false: 2,
 };
 
 const floorW = 70;
-const floorH = 100;
+const floorH = 70;
 
-const data= [
+const data = [
   {
     id: 1,
     type: TYPE.start,
@@ -23,7 +23,7 @@ const data= [
     condition: "",
     x: floorW,
     y: floorH,
-    status: STATUS.none
+    status: STATUS.none,
   },
   {
     id: 2,
@@ -34,8 +34,8 @@ const data= [
     label: "逻辑1",
     condition: "京腾支付价 in api.price",
     x: floorW,
-    y: floorH*2,
-    status: STATUS.true
+    y: floorH * 2,
+    status: STATUS.true,
   },
   {
     id: 3,
@@ -45,9 +45,9 @@ const data= [
     nextRightNode: undefined,
     label: "兜底",
     condition: "",
-    x: floorW*4,
-    y: floorH*2,
-    status: STATUS.none
+    x: floorW * 4,
+    y: floorH * 2,
+    status: STATUS.none,
   },
   {
     id: 4,
@@ -58,8 +58,8 @@ const data= [
     label: "逻辑2",
     condition: "支付价 in price.京腾",
     x: floorW,
-    y: floorH*3,
-    status: STATUS.true
+    y: floorH * 3,
+    status: STATUS.true,
   },
   {
     id: 5,
@@ -70,8 +70,8 @@ const data= [
     label: "逻辑3",
     condition: "原价 in price.京腾",
     x: floorW,
-    y: floorH*4,
-    status: STATUS.true
+    y: floorH * 4,
+    status: STATUS.true,
   },
   {
     id: 6,
@@ -81,9 +81,9 @@ const data= [
     nextRightNode: 10,
     label: "逻辑4",
     condition: "原价 in price.京腾",
-    x: floorW*7,
-    y: floorH*3,
-    status: STATUS.false
+    x: floorW * 7,
+    y: floorH * 3,
+    status: STATUS.false,
   },
   {
     id: 7,
@@ -94,8 +94,8 @@ const data= [
     label: "逻辑5",
     condition: "支付价 >= 原价",
     x: floorW,
-    y: floorH*5,
-    status: STATUS.true
+    y: floorH * 5,
+    status: STATUS.true,
   },
   {
     id: 8,
@@ -105,9 +105,9 @@ const data= [
     nextRightNode: undefined,
     label: "显示支付价",
     condition: "",
-    x: floorW*4,
-    y: floorH*4,
-    status: STATUS.false
+    x: floorW * 4,
+    y: floorH * 4,
+    status: STATUS.false,
   },
   {
     id: 9,
@@ -117,9 +117,9 @@ const data= [
     nextRightNode: undefined,
     label: "显示原价",
     condition: "",
-    x: floorW*7,
-    y: floorH*4,
-    status: STATUS.true
+    x: floorW * 7,
+    y: floorH * 4,
+    status: STATUS.true,
   },
   {
     id: 10,
@@ -129,9 +129,9 @@ const data= [
     nextRightNode: undefined,
     label: "兜底",
     condition: "",
-    x: floorW*10,
-    y: floorH*3,
-    status: STATUS.false
+    x: floorW * 10,
+    y: floorH * 3,
+    status: STATUS.false,
   },
   {
     id: 11,
@@ -142,8 +142,8 @@ const data= [
     label: "显示支付价",
     condition: "",
     x: floorW,
-    y: floorH*6,
-    status: STATUS.true
+    y: floorH * 6,
+    status: STATUS.true,
   },
   {
     id: 12,
@@ -153,10 +153,25 @@ const data= [
     nextRightNode: undefined,
     label: "显示支付价+原价",
     condition: "",
-    x: floorW*4,
-    y: floorH*5,
-    status: STATUS.false
-  }
+    x: floorW * 4,
+    y: floorH * 5,
+    status: STATUS.false,
+  },
 ];
 
-export { data, TYPE };
+const data_o = [
+  {
+    id: 1,
+    type: TYPE.start,
+    prevNode: undefined,
+    nextLeftNode: 2,
+    nextRightNode: undefined,
+    label: "开始",
+    condition: "",
+    x: 55,
+    y: 65,
+    status: STATUS.none,
+  },
+];
+
+export { data, TYPE, data_o, STATUS };

@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import "./index.css";
-import { TYPE, data as sourceData } from "./data1";
+import { TYPE, data as sourceData, data_o, STATUS } from "./data1";
 import { NodeOperation } from "./basicGraph/NodeOperation";
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
@@ -15,12 +15,23 @@ class IndexSvg extends Component {
     this.state = {
       selectedNode: {},
       data: sourceData,
+      dataO: data_o,
+      flag: false,
     };
   }
 
   componentDidMount() {
-    const { data } = this.state;
-    this.renderSvg(data);
+    const { dataO } = this.state;
+    this.renderSvgO(dataO);
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const { data, dataO, flag } = this.state;
+    if (flag) {
+      this.renderSvg(data);
+    } else {
+      this.renderSvgO(dataO);
+    }
   }
 
   paintRoundText = (svg, x, y, r, text, id = "") => {
@@ -46,13 +57,9 @@ class IndexSvg extends Component {
     return g;
   };
 
-  renderSvg = data => {
-    const svg = Snap("#svgId");
-    /****************开始*******************/
-    const x = 400;
-    const y = 50;
+  logicUnit = (svg, x, y, operationObj, node) => {
     const w = 100;
-    const h = 70;
+    const h = 50;
     const x_c = x;
     const y_c = y + h;
     const x_t = x;
@@ -89,24 +96,67 @@ class IndexSvg extends Component {
     // 4. 画F
     const falseE = this.paintRoundText(svg, x_f, y_f, 12, "F", "F");
     falseE.click(() => {
-      const r = svg.select("#operationId");
-      r && r.remove();
-      NodeOperation(svg, x_f, y_f, 50, operationObj, "F");
+      NodeOperation(svg, x_f, y_f, 50, operationObj, "F", node);
     });
-    // 5. 画
+    // 5. 画T
     const trueE = this.paintRoundText(svg, x_t, y_t, 12, "T", "T");
     trueE.click(() => {
-      const r = svg.select("#operationId");
-      r && r.remove();
-      NodeOperation(svg, x_t, y_t, 50, operationObj, "T");
+      NodeOperation(svg, x_t, y_t, 50, operationObj, "T", node);
     });
+  };
 
+  handleAddLogic = (svg, e, label, node, trueOrFalse) => {
+    const operationElement = e.getBBox();
+    console.log(operationElement);
+    const { dataO } = this.state;
+    let offsetX = operationElement.cx;
+    let offsetY = operationElement.cy;
+    if (node.type === TYPE.start) {
+      offsetY = operationElement.cy + 60;
+    } else {
+      if (trueOrFalse === "F") {
+        offsetX = operationElement.cx + 100;
+        offsetY = operationElement.cy;
+      } else {
+        offsetX = operationElement.cx;
+        offsetY = operationElement.cy + 60;
+      }
+    }
+    // 新增节点
+    const newNode = {
+      id: dataO.length + 1,
+      type: TYPE.rhombus,
+      prevNode: node.id,
+      nextLeftNode: undefined,
+      nextRightNode: undefined,
+      label: "xxxx",
+      condition: "xxx",
+      x: offsetX,
+      y: offsetY,
+      status: STATUS.true,
+    };
+    // 更改当前节点的nextLeftNode和nextRightNode
+    const changeData = dataO.map(item => {
+      if (item.id === node.id) {
+        return {
+          ...item,
+          nextLeftNode: trueOrFalse === "F" ? undefined : newNode.id,
+          nextRightNode: trueOrFalse === "F" ? newNode.id : undefined,
+        };
+      }
+      return item;
+    });
+    this.setState({ dataO: [...changeData, newNode] });
+  };
+
+  renderSvgO = data => {
+    const svg = Snap("#svgId");
+    svg.clear();
+    /****************开始*******************/
     const operationObj = [
       {
         label: "+",
-        clickFn: function(svg, e, label) {
-          console.log(label);
-        },
+        clickFn: this.handleAddLogic,
         attr: {
           circleStroke: "#38649E",
           circleFill: "#E6F1FD",
@@ -149,24 +199,42 @@ class IndexSvg extends Component {
         },
       },
     ];
-
-    // const x = 550;
-    // const y = 150;
-    // const r = 90;
-    // svg.circle(x, y, r).attr({
-    //   fill: "rgb(244,244,244)",
-    //   "stroke-width": 1,
-    //   "stroke-dasharray": 0,
-    //   stroke: "gray",
-    // });
-    // const oo = ['+', '-', 'E', 'P', 'R', 'J', 'L'];
-    // const deg = 2 * Math.PI / oo.length;
-    // for (let i = 0; i < oo.length; i++) {
-    //   const tmp = oo[i];
-    //   this.paintRoundText(svg, x+Math.cos(deg*i)*r, y-Math.sin(deg*i)*r, 12, tmp);
-    // }
+    // 根据数据进行渲染
+    for (let node of data) {
+      const { id, type, prevNode, nextLeftNode, nextRightNode, label, condition, x, y } = node;
+      // 类型为start时，画矩形开始图
+      if (type === TYPE.start || type === TYPE.rect) {
+        const rectStart = this.paintRectTextO(svg, x, y, label);
+        // 绑定事件
+        rectStart.click(() => {
+          const { x, y, width, height } = rectStart.getBBox();
+          NodeOperation(svg, x + width / 2, y + height / 2, 50, operationObj, "开始", node);
+        });
+      }
+      // 类型为rhombus时，画菱形
+      if (type === TYPE.rhombus) {
+        this.logicUnit(svg, x, y, operationObj, node);
+      }
+      // 画线
+      if (nextLeftNode) {
+        const { x: subX, y: subY } = data.find(item => item.id === nextLeftNode) || {};
+        if (subX && subY) {
+          this.paintLine(svg, x, y + reactHeight / 2, subX, subY - reactHeight / 2);
+        }
+      }
+      if (nextRightNode) {
+        const { x: subX, y: subY } = data.find(item => item.id === nextRightNode);
+        if (subX && subY) {
+          this.paintLine(svg, x + reactWidth / 2, y, subX - reactWidth / 2, subY);
+        }
+      }
+    }
     /****************结束*******************/
+  };
 
+  renderSvg = data => {
+    const svg = Snap("#svgId");
+    svg.clear();
     for (let node of data) {
       const { id, type, prevNode, nextLeftNode, nextRightNode, label, condition, x, y } = node;
       // 类型为start时，画矩形开始图
@@ -248,6 +316,27 @@ class IndexSvg extends Component {
     });
   }
 
+  paintRectTextO(svg, x, y, text) {
+    const textE = svg.text(x, y, text).attr({ "font-size": 16 });
+    const { width, height } = textE.getBBox();
+    const textE1 = svg.text(x, y, text).attr({ "font-size": 12, class: "text-center" });
+    const rectE = svg.rect(x - width / 2, y - height / 2, width, height).attr({
+      fill: "rgb(244,244,244)",
+      stroke: "gray",
+      "stroke-width": 1,
+      "stroke-dasharray": 0,
+      rx: 2,
+      ry: 2,
+    });
+    textE.remove();
+    const g = svg.g(rectE, textE1);
+    // 鼠标放上去展示小手
+    g.attr({
+      class: "text-center",
+    });
+    return g;
+  }
+
   paintRectText(svg, x, y, text) {
     const textE = this.paintText(svg, x, y, text);
     const { width } = textE.getBBox();
@@ -265,10 +354,12 @@ class IndexSvg extends Component {
   }
 
   paintRect(svg, x, y, width) {
-    return svg.rect(x - reactWidth / 2, y - reactHeight / 2, width, reactHeight, 0, 0).attr({
-      fill: "transparent",
-      stroke: "rgb(49, 208, 198)",
-      "stroke-width": 2,
+    const reactWidth = 60;
+    const reactHeight = 20;
+    return svg.rect(x - reactWidth / 2, y - reactHeight / 2, width * 1.3, reactHeight, 0, 0).attr({
+      fill: "rgb(244,244,244)",
+      stroke: "gray",
+      "stroke-width": 1,
       "stroke-dasharray": 0,
       rx: 2,
       ry: 2,
@@ -323,15 +414,22 @@ class IndexSvg extends Component {
   };
 
   render() {
+    console.log(this.state.dataO);
     return (
       <Fragment>
+        <button
+          onClick={() => {
+            this.setState({ flag: !this.state.flag });
+          }}>
+          切换
+        </button>
         <div
           style={{
             position: "relative",
             width: 1000,
             height: 800,
             border: "1px solid #dfdfdf",
-            margin: "20px 0 0 50px",
+            margin: "20px 0 0 20px",
           }}>
           <svg id="svgId" width={1000} height={800} />
           <div

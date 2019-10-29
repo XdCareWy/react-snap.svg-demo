@@ -6,10 +6,13 @@
  * @param r 半径
  * @param operationObj 分布在r上的小圆圈操作
  * @param text 中心位置小圈里的文本
+ * @param node 当前节点的基本信息
  * @returns {React.ReactSVGElement | never}
  * @constructor
  */
-export function NodeOperation(svg, x, y, r, operationObj, text) {
+export function NodeOperation(svg, x, y, r, operationObj, text, node) {
+  const operationE = svg.select("#operationId");
+  operationE && operationE.remove();
   // 外围大圈
   const circleE = svg.circle(x, y, r).attr({
     fill: "rgb(244,244,244)",
@@ -35,7 +38,7 @@ export function NodeOperation(svg, x, y, r, operationObj, text) {
     });
     tmpE.select("text").attr({ fill: textFill });
     tmpE.click(() => {
-      clickFn(svg, tmpE, label);
+      clickFn(svg, centerG, label, node, text);
     });
     oo.push(tmpE);
   }
