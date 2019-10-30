@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import "./index.css";
-import { TYPE, data as sourceData, data_o, STATUS } from "./data1";
+import { TYPE, data_o, STATUS } from "./data1";
 import { NodeOperation } from "./basicGraph/NodeOperation";
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
@@ -13,25 +13,18 @@ class IndexSvg extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      selectedNode: {},
-      data: sourceData,
-      dataO: data_o,
-      flag: false,
+      data: data_o,
     };
   }
 
   componentDidMount() {
-    const { dataO } = this.state;
-    this.renderSvgO(dataO);
+    const { data } = this.state;
+    this.renderSvg(data);
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
-    const { data, dataO, flag } = this.state;
-    if (flag) {
-      this.renderSvg(data);
-    } else {
-      this.renderSvgO(dataO);
-    }
+    const { data } = this.state;
+    this.renderSvg(data);
   }
 
   paintRoundText = (svg, x, y, r, text, id = "") => {
@@ -118,7 +111,7 @@ class IndexSvg extends Component {
 
   handleAddLogic = (svg, e, label, node, trueOrFalse) => {
     const operationElement = e.getBBox();
-    const { dataO } = this.state;
+    const { data } = this.state;
     let offsetX = operationElement.cx;
     let offsetY = operationElement.cy;
     if (node.type === TYPE.start) {
@@ -134,7 +127,7 @@ class IndexSvg extends Component {
     }
     // 新增节点
     const newNode = {
-      id: dataO.length + 1,
+      id: data.length + 1,
       type: TYPE.rhombus,
       prevNode: node.id,
       nextLeftNode: undefined,
@@ -146,7 +139,7 @@ class IndexSvg extends Component {
       status: STATUS.true,
     };
     // 更改当前节点的nextLeftNode和nextRightNode
-    const changeData = dataO.map(item => {
+    const changeData = data.map(item => {
       if (item.id === node.id) {
         return {
           ...item,
@@ -156,13 +149,12 @@ class IndexSvg extends Component {
       }
       return item;
     });
-    this.setState({ dataO: [...changeData, newNode] });
+    this.setState({ data: [...changeData, newNode] });
   };
 
-  renderSvgO = data => {
+  renderSvg = data => {
     const svg = Snap("#svgId");
     svg.clear();
-    /****************开始*******************/
     const operationObj = [
       {
         label: "+",
@@ -247,69 +239,6 @@ class IndexSvg extends Component {
         }
       }
     }
-    /****************结束*******************/
-  };
-
-  renderSvg = data => {
-    const svg = Snap("#svgId");
-    svg.clear();
-    for (let node of data) {
-      const { id, type, prevNode, nextLeftNode, nextRightNode, label, condition, x, y } = node;
-      // 类型为start时，画矩形开始图
-      if (type === TYPE.start || type === TYPE.rect) {
-        const rectStart = this.paintRectText(svg, type === TYPE.start ? x + 12 : x, y, label);
-        // 绑定事件
-        rectStart.click(() => {
-          const { x, y, width, height } = rectStart.getBBox();
-          this.showOperation(x, y, width, height);
-          this.setState({ selectedNode: node });
-        });
-      }
-      // 类型为rhombus时，画菱形
-      if (type === TYPE.rhombus) {
-        const rhombusLogic = this.paintRhombus(svg, x, y);
-        // this.paintText(svg, x, y, label);
-        this.paintText(svg, x + 40, y - 16, condition);
-        rhombusLogic.click(() => {
-          const { x, y, width, height } = rhombusLogic.getBBox();
-          console.log(rhombusLogic.getBBox());
-          this.showOperation(x, y, width, height);
-          this.setState({ selectedNode: node });
-        });
-      }
-      // 画线
-      if (nextLeftNode) {
-        const { x: subX, y: subY } = data.find(item => item.id === nextLeftNode);
-        this.paintLine(svg, x, y + reactHeight / 2, subX, subY - reactHeight / 2);
-        svg.text(x - 25, y + (subY - y) / 2, "Yes").attr({ "font-size": 12 });
-      }
-      if (nextRightNode) {
-        const { x: subX, y: subY } = data.find(item => item.id === nextRightNode);
-        this.paintLine(svg, x + reactWidth / 2, y, subX - reactWidth / 2, subY);
-        svg.text(x + (subX - x) / 2, y + 12, "No").attr({ "font-size": 10 });
-      }
-    }
-  };
-
-  showOperation = (left, top, width, height) => {
-    const d = document.getElementById("operationDiv");
-    const operation = document.getElementById("operation");
-    d.style.top = `${top - 3}px`;
-    d.style.left = `${left - 3}px`;
-    d.style.width = `${width + 4}px`;
-    d.style.height = `${height + 4}px`;
-    d.style.display = "block";
-    operation.style.top = `${top - 3}px`;
-    operation.style.left = `${left - 3}px`;
-    operation.style.width = `${width + 4}px`;
-    operation.style.height = `${height + 4}px`;
-    operation.style.display = "block";
-  };
-  hidenOperation = () => {
-    const d = document.getElementById("operationDiv");
-    const operation = document.getElementById("operation");
-    d.style.display = "none";
-    operation.style.display = "none";
   };
 
   paintLine = (svg, fromX, fromY, toX, toY) => {
@@ -407,32 +336,8 @@ class IndexSvg extends Component {
       });
   };
 
-  handleInfo = () => {
-    const { selectedNode } = this.state;
-    console.log(selectedNode);
-    //  todo： 展示该节点的信息
-  };
-
-  handleRemove = () => {
-    const { selectedNode } = this.state;
-    console.log(selectedNode);
-    //  todo： 删除该节点及其子节点
-  };
-
-  handlePlus = () => {
-    const { selectedNode } = this.state;
-    console.log(selectedNode);
-    //  todo： 增加新的节点
-  };
-
-  handleConfig = () => {
-    const { selectedNode } = this.state;
-    console.log(selectedNode);
-    //  todo： 配置该节点的信息
-  };
-
   render() {
-    console.log(this.state.dataO);
+    console.log(this.state.data);
     return (
       <Fragment>
         <button
@@ -450,35 +355,6 @@ class IndexSvg extends Component {
             margin: "20px 0 0 20px",
           }}>
           <svg id="svgId" width={1000} height={800} />
-          <div
-            id="operationDiv"
-            style={{
-              display: "none",
-              transform: "rotate(0deg)",
-            }}
-            className="joint-free-transform joint-theme-modern">
-            <div draggable="false" className="resize nw" data-position="top-left" />
-            <div draggable="false" className="resize n" data-position="top" />
-            <div draggable="false" className="resize ne" data-position="top-right" />
-            <div draggable="false" className="resize e" data-position="right" />
-            <div draggable="false" className="resize se" data-position="bottom-right" />
-            <div draggable="false" className="resize s" data-position="bottom" />
-            <div draggable="false" className="resize sw" data-position="bottom-left" />
-            <div draggable="false" className="resize w" data-position="left" />
-          </div>
-          <div
-            id="operation"
-            style={{
-              display: "none",
-            }}
-            className="join-halo">
-            <div>
-              <div className="info" onClick={this.handleInfo} />
-              <div className="remove" onClick={this.handleRemove} />
-              <div className="plus" onClick={this.handlePlus} />
-              <div className="config" onClick={this.handleConfig} />
-            </div>
-          </div>
         </div>
       </Fragment>
     );
