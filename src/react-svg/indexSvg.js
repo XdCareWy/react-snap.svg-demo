@@ -56,17 +56,28 @@ class IndexSvg extends Component {
     );
     return g;
   };
-
-  logicUnit = (svg, x, y, operationObj, node) => {
-    const w = 100;
-    const h = 50;
+  computeLogic = (x, y, width = 100, height = 50) => {
+    const w = width;
+    const h = height;
     const x_c = x;
     const y_c = y + h;
     const x_t = x;
     const y_t = y + 2 * h;
     const x_f = x + w;
     const y_f = y + h;
-
+    return {
+      x,
+      y,
+      x_c,
+      y_c,
+      x_f,
+      y_f,
+      x_t,
+      y_t,
+    };
+  };
+  paintLogicUnit = (svg, x, y, operationObj, node) => {
+    const { x_f, y_f, x_c, y_c, x_t, y_t } = this.computeLogic(x, y);
     // 1. 菱形 - 连接点 的line
     svg.line(x, y, x_c, y_c).attr({
       fill: "transparent",
@@ -107,7 +118,6 @@ class IndexSvg extends Component {
 
   handleAddLogic = (svg, e, label, node, trueOrFalse) => {
     const operationElement = e.getBBox();
-    console.log(operationElement);
     const { dataO } = this.state;
     let offsetX = operationElement.cx;
     let offsetY = operationElement.cy;
@@ -140,8 +150,8 @@ class IndexSvg extends Component {
       if (item.id === node.id) {
         return {
           ...item,
-          nextLeftNode: trueOrFalse === "F" ? undefined : newNode.id,
-          nextRightNode: trueOrFalse === "F" ? newNode.id : undefined,
+          nextLeftNode: trueOrFalse === "F" ? item.nextLeftNode : newNode.id,
+          nextRightNode: trueOrFalse === "F" ? newNode.id : item.nextRightNode,
         };
       }
       return item;
@@ -213,19 +223,27 @@ class IndexSvg extends Component {
       }
       // 类型为rhombus时，画菱形
       if (type === TYPE.rhombus) {
-        this.logicUnit(svg, x, y, operationObj, node);
+        this.paintLogicUnit(svg, x, y, operationObj, node);
       }
       // 画线
       if (nextLeftNode) {
-        const { x: subX, y: subY } = data.find(item => item.id === nextLeftNode) || {};
-        if (subX && subY) {
+        const { x: subX, y: subY, type: subType } = data.find(item => item.id === nextLeftNode) || {};
+        if (type === TYPE.start && subType === TYPE.rhombus && subX && subY) {
           this.paintLine(svg, x, y + reactHeight / 2, subX, subY - reactHeight / 2);
+        } else if (type === TYPE.rhombus && subType === TYPE.rhombus) {
+          const { x_t: startX, y_t: startY } = this.computeLogic(x, y);
+          this.paintLine(svg, startX, startY + reactHeight / 2, subX, subY - reactHeight / 2);
+        } else {
+          //  rect
         }
       }
       if (nextRightNode) {
-        const { x: subX, y: subY } = data.find(item => item.id === nextRightNode);
-        if (subX && subY) {
-          this.paintLine(svg, x + reactWidth / 2, y, subX - reactWidth / 2, subY);
+        const { x: subX, y: subY, type: subType } = data.find(item => item.id === nextRightNode) || {};
+        if (type === TYPE.rhombus && subType === TYPE.rhombus) {
+          const { x_f: startX, y_f: startY } = this.computeLogic(x, y);
+          this.paintLine(svg, startX + 12, startY, subX - reactWidth / 2, subY);
+        } else {
+          //  rect
         }
       }
     }

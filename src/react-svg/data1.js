@@ -170,6 +170,8 @@ const data_o = [
     condition: "",
     x: 55,
     y: 65,
+    x_t: 55,
+    y_t: 65,
     status: STATUS.none,
   },
 ];
