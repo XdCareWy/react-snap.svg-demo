@@ -22,3 +22,11 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .idea/
+src/canvas
+src/errorDemo
+src/front
+src/Hooks
+src/pages
+src/TsDemo
+test.js
+
