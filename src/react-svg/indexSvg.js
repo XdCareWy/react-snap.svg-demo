@@ -113,6 +113,52 @@ class IndexSvg extends Component {
     return svg.g(rhombusToCenterLine, centerToFalseLine, centerToTrueLine, rhombusE, centerE, trueE, falseE);
   };
 
+  // 操作 - 添加结束单元
+  handleAddFinish = (svg, e, label, node, trueOrFalse) => {
+    const { textGroup } = this.paintResponseRectText(svg, 0, 0, node.condition, 200);
+    const { x_t, y_t, x_f, y_f } = this.computeLogic(
+      node.x,
+      node.y,
+      textGroup.getBBox().width,
+      textGroup.getBBox().height / 2 + 20
+    );
+    let offsetX = 0;
+    let offsetY = 0;
+    if (trueOrFalse === "T") {
+      offsetX = x_t;
+      offsetY = y_t + 80;
+    } else {
+      offsetX = x_f + 110;
+      offsetY = y_f;
+    }
+    textGroup.remove();
+    const { data } = this.state;
+    const finishNode = {
+      id: data.length + 1,
+      type: TYPE.rect,
+      prevNode: node.id,
+      nextLeftNode: undefined,
+      nextRightNode: undefined,
+      label: "finish",
+      condition: undefined,
+      x: offsetX,
+      y: offsetY,
+      status: STATUS.false,
+    };
+    // 更改当前节点的nextLeftNode和nextRightNode
+    const changeData = data.map(item => {
+      if (item.id === node.id) {
+        return {
+          ...item,
+          nextLeftNode: trueOrFalse === "F" ? item.nextLeftNode : finishNode.id,
+          nextRightNode: trueOrFalse === "F" ? finishNode.id : item.nextRightNode,
+        };
+      }
+      return item;
+    });
+    this.setState({ data: [...changeData, finishNode] });
+  };
+
   // 操作 - 添加逻辑单元
   handleAddLogic = (svg, e, label, node, trueOrFalse) => {
     const operationElement = e.getBBox();
@@ -159,6 +205,11 @@ class IndexSvg extends Component {
 
   // 画根据宽度自动换行的矩形文本
   paintResponseRectText = (svg, x, y, text, lineWidth = 100, offsetX = 0, offsetY = 0) => {
+    if (!text)
+      return {
+        rectGroup: undefined,
+        textGroup: undefined,
+      };
     const words = text.split("").reverse();
     let line = [];
     let textX = x + offsetX; // 文本实际绘制的x坐标
@@ -232,9 +283,7 @@ class IndexSvg extends Component {
       },
       {
         label: "E",
-        clickFn: function(svg, e, label) {
-          console.log(label);
-        },
+        clickFn: this.handleAddFinish,
         attr: {
           circleStroke: "#38649E",
           circleFill: "#E6F1FD",
@@ -277,7 +326,7 @@ class IndexSvg extends Component {
         offsetX,
         offsetY
       );
-      const { width: tmpWidth, height: tmpHeight, cy: tmpCy } = tmp.getBBox();
+      const { width: tmpWidth, height: tmpHeight, cy: tmpCy } = tmp ? tmp.getBBox() : {};
       // 类型为rhombus时，画菱形
       if (type === TYPE.rhombus) {
         if (tmpCy > y) {
@@ -299,8 +348,11 @@ class IndexSvg extends Component {
         } else if (type === TYPE.rhombus && subType === TYPE.rhombus) {
           const { x_t: startX, y_t: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
           this.paintLine(svg, startX, startY + reactHeight / 2, subX, subY - reactHeight / 2);
+        }  else if (type === TYPE.rhombus && subType === TYPE.rect) {
+          const { x_t: startX, y_t: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
+          this.paintLine(svg, startX, startY + reactHeight / 2, subX, subY - reactHeight / 2);
         } else {
-          //  rect
+          //  error
         }
       }
       // 画线，从F往右画
@@ -309,12 +361,15 @@ class IndexSvg extends Component {
         if (type === TYPE.rhombus && subType === TYPE.rhombus) {
           const { x_f: startX, y_f: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
           this.paintLine(svg, startX + 12, startY, subX - reactWidth / 2, subY);
+        } else if (type === TYPE.rhombus && subType === TYPE.rect) {
+          const { x_f: startX, y_f: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
+          this.paintLine(svg, startX + 12, startY, subX, subY);
         } else {
-          //  rect
+          //  error
         }
       }
       // 删除临时文字
-      rectGroup.remove();
+      rectGroup && rectGroup.remove();
     }
   };
 
@@ -380,7 +435,7 @@ class IndexSvg extends Component {
   };
 
   render() {
-    // console.log(this.state.data);
+    console.log(this.state.data);
     return (
       <Fragment>
         <button
