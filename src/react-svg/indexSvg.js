@@ -27,6 +27,7 @@ class IndexSvg extends Component {
     this.renderSvg(data);
   }
 
+  // 画圆形里带文字的图
   paintRoundText = (svg, x, y, r, text, id = "") => {
     const textSvg = svg.text(x, y, text).attr({
       class: "text-center",
@@ -49,6 +50,7 @@ class IndexSvg extends Component {
     );
     return g;
   };
+  // 计算逻辑单元的关键点的位置
   computeLogic = (x, y, width = 100, height = 50) => {
     const w = width < 100 ? 100 : width;
     const h = height < 50 ? 50 : height;
@@ -69,6 +71,7 @@ class IndexSvg extends Component {
       y_t,
     };
   };
+  // 画逻辑单元
   paintLogicUnit = (svg, x, y, operationObj, node, spaceWidth, spaceHeight) => {
     const { x_f, y_f, x_c, y_c, x_t, y_t } = this.computeLogic(x, y, spaceWidth, spaceHeight);
     // 1. 菱形 - 连接点 的line
@@ -109,6 +112,7 @@ class IndexSvg extends Component {
     });
   };
 
+  // 操作 - 添加逻辑单元
   handleAddLogic = (svg, e, label, node, trueOrFalse) => {
     const operationElement = e.getBBox();
     const { data } = this.state;
@@ -152,6 +156,7 @@ class IndexSvg extends Component {
     this.setState({ data: [...changeData, newNode] });
   };
 
+  // 画根据宽度自动换行的矩形文本
   paintResponseRectText = (svg, x, y, text, lineWidth = 100, offsetX = 0, offsetY = 0) => {
     const words = text.split("").reverse();
     let line = [];
@@ -193,7 +198,7 @@ class IndexSvg extends Component {
     });
     return {
       rectGroup: svg.g(rectElement, textGroup),
-      textGroup: textGroup
+      textGroup: textGroup,
     };
   };
 
@@ -254,44 +259,54 @@ class IndexSvg extends Component {
       const { id, type, prevNode, nextLeftNode, nextRightNode, label, condition, x, y } = node;
       // 类型为start时，画矩形开始图
       if (type === TYPE.start || type === TYPE.rect) {
-        const rectStart = this.paintRectTextO(svg, x, y, label);
+        const rectStart = this.paintRectText(svg, x, y, label);
         // 绑定事件
         rectStart.click(() => {
           const { x, y, width, height } = rectStart.getBBox();
           NodeOperation(svg, x + width / 2, y + height / 2, 50, operationObj, "开始", node);
         });
       }
-      // 画临时文字
-      const {rectGroup, textGroup: tmp} = this.paintResponseRectText(svg, x, y, condition, lineWidth, offsetX, offsetY);
+      // 画临时文字,来获取当前文本所占的宽度和高度
+      const { rectGroup, textGroup: tmp } = this.paintResponseRectText(
+        svg,
+        x,
+        y,
+        condition,
+        lineWidth,
+        offsetX,
+        offsetY
+      );
       const { width: tmpWidth, height: tmpHeight, cy: tmpCy } = tmp.getBBox();
       // 类型为rhombus时，画菱形
       if (type === TYPE.rhombus) {
-        if(tmpCy > y) {
+        if (tmpCy > y) {
           offsetY = y - tmpCy;
-        }else {
+        } else {
           offsetY = tmpCy - y;
         }
-        this.paintResponseRectText(svg, x, y, condition, tmpWidth, offsetX, -tmpHeight/2);
+        // 画矩形文字最终的位置
+        this.paintResponseRectText(svg, x, y, condition, tmpWidth, offsetX, -tmpHeight / 2);
         // 画菱形
-        this.paintLogicUnit(svg, x, y, operationObj, node, tmpWidth, tmpHeight/2+20);
+        this.paintLogicUnit(svg, x, y, operationObj, node, tmpWidth, tmpHeight / 2 + 20);
       }
 
-      // 画线
+      // 画线，从T开始往下画
       if (nextLeftNode) {
         const { x: subX, y: subY, type: subType } = data.find(item => item.id === nextLeftNode) || {};
         if (type === TYPE.start && subType === TYPE.rhombus && subX && subY) {
           this.paintLine(svg, x, y + reactHeight / 2, subX, subY - reactHeight / 2);
         } else if (type === TYPE.rhombus && subType === TYPE.rhombus) {
-          const { x_t: startX, y_t: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight/2+20);
+          const { x_t: startX, y_t: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
           this.paintLine(svg, startX, startY + reactHeight / 2, subX, subY - reactHeight / 2);
         } else {
           //  rect
         }
       }
+      // 画线，从F往右画
       if (nextRightNode) {
         const { x: subX, y: subY, type: subType } = data.find(item => item.id === nextRightNode) || {};
         if (type === TYPE.rhombus && subType === TYPE.rhombus) {
-          const { x_f: startX, y_f: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight/2+20);
+          const { x_f: startX, y_f: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
           this.paintLine(svg, startX + 12, startY, subX - reactWidth / 2, subY);
         } else {
           //  rect
@@ -302,6 +317,7 @@ class IndexSvg extends Component {
     }
   };
 
+  // 带箭头的线
   paintLine = (svg, fromX, fromY, toX, toY) => {
     const p1 = svg.path("M0,0 L0,4 L3,2 L0,0").attr({
       fill: "rgb(143, 143, 143)",
@@ -316,15 +332,8 @@ class IndexSvg extends Component {
     });
   };
 
-  paintRoundRect(svg, x, y) {
-    return svg.rect(x - 20, y - 10, reactWidth, reactHeight, reactBorderRadius, reactBorderRadius).attr({
-      fill: "white",
-      stroke: "black",
-      "fill-opacity": 0,
-    });
-  }
-
-  paintRectTextO(svg, x, y, text) {
+  // 画开始/结束的带文本的圆角矩形
+  paintRectText(svg, x, y, text) {
     const textE = svg.text(x, y, text).attr({ "font-size": 16 });
     const { width, height } = textE.getBBox();
     const textE1 = svg.text(x, y, text).attr({ "font-size": 12, class: "text-center" });
@@ -345,35 +354,7 @@ class IndexSvg extends Component {
     return g;
   }
 
-  paintRectText(svg, x, y, text) {
-    const textE = this.paintText(svg, x, y, text);
-    const { width } = textE.getBBox();
-    const rectE = this.paintRect(svg, x, y, width + 10);
-    const g = svg.g(rectE, textE);
-    // 鼠标放上去展示小手
-    g.addClass("cursor-pointer");
-    return g;
-  }
-
-  paintText(svg, x, y, text) {
-    return svg.text(x - reactWidth / 2 + 4, y - reactHeight / 2 + 15, text).attr({
-      "font-size": 12,
-    });
-  }
-
-  paintRect(svg, x, y, width) {
-    const reactWidth = 60;
-    const reactHeight = 20;
-    return svg.rect(x - reactWidth / 2, y - reactHeight / 2, width * 1.3, reactHeight, 0, 0).attr({
-      fill: "rgb(244,244,244)",
-      stroke: "gray",
-      "stroke-width": 1,
-      "stroke-dasharray": 0,
-      rx: 2,
-      ry: 2,
-    });
-  }
-
+  // 画菱形单元
   paintRhombus = (svg, x, y) => {
     return svg
       .polyline([
