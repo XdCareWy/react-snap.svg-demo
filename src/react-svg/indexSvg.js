@@ -75,21 +75,21 @@ class IndexSvg extends Component {
   paintLogicUnit = (svg, x, y, operationObj, node, spaceWidth, spaceHeight) => {
     const { x_f, y_f, x_c, y_c, x_t, y_t } = this.computeLogic(x, y, spaceWidth, spaceHeight);
     // 1. 菱形 - 连接点 的line
-    svg.line(x, y, x_c, y_c).attr({
+    const rhombusToCenterLine = svg.line(x, y, x_c, y_c).attr({
       fill: "transparent",
       stroke: "rgb(143, 143, 143)",
       "stroke-width": 2,
       "stroke-dasharray": 0,
     });
     // 2. 连接点 - F 的line
-    svg.line(x_c, y_c, x_f, y_f).attr({
+    const centerToFalseLine = svg.line(x_c, y_c, x_f, y_f).attr({
       fill: "transparent",
       stroke: "rgb(143, 143, 143)",
       "stroke-width": 2,
       "stroke-dasharray": 0,
     });
     // 3. 连接点 - T 的line
-    svg.line(x_c, y_c, x_t, y_t).attr({
+    const centerToTrueLine = svg.line(x_c, y_c, x_t, y_t).attr({
       fill: "transparent",
       stroke: "rgb(143, 143, 143)",
       "stroke-width": 2,
@@ -97,9 +97,9 @@ class IndexSvg extends Component {
     });
 
     // 1. 画菱形
-    this.paintRhombus(svg, x, y);
+    const rhombusE = this.paintRhombus(svg, x, y);
     // 3. 画连接点
-    this.paintRoundText(svg, x_c, y_c, 5);
+    const centerE = this.paintRoundText(svg, x_c, y_c, 5);
     // 4. 画F
     const falseE = this.paintRoundText(svg, x_f, y_f, 12, "F", "F");
     falseE.click(() => {
@@ -110,6 +110,7 @@ class IndexSvg extends Component {
     trueE.click(() => {
       NodeOperation(svg, x_t, y_t, 50, operationObj, "T", node);
     });
+    return svg.g(rhombusToCenterLine, centerToFalseLine, centerToTrueLine, rhombusE, centerE, trueE, falseE);
   };
 
   // 操作 - 添加逻辑单元
