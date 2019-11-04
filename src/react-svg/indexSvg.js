@@ -203,7 +203,7 @@ class IndexSvg extends Component {
   };
 
   // 画根据宽度自动换行的矩形文本
-  paintResponseRectText = (svg, x, y, text, lineWidth = 100, offsetX = 0, offsetY = 0) => {
+  paintResponseRectText = (svg, x, y, text, lineWidth = 100, offsetX = 0, offsetY = 0, dasharray = 3) => {
     if (!text)
       return {
         rectGroup: undefined,
@@ -245,7 +245,7 @@ class IndexSvg extends Component {
       fill: "transparent",
       stroke: "rgb(143, 143, 143)",
       "stroke-width": 2,
-      "stroke-dasharray": 3,
+      "stroke-dasharray": dasharray,
       rx: 10,
       ry: 10,
     });
@@ -331,11 +331,11 @@ class IndexSvg extends Component {
 
       if (type === TYPE.rect) {
         const { textGroup, rectGroup } = this.paintResponseRectText(svg, x, y, label, 80);
-        const r = textGroup.getBBox();
+        const finishTextTmpNode = textGroup.getBBox();
         if (status === STATUS.true) {
-          this.paintResponseRectText(svg, x, y, label, 80, -r.width / 2, 10);
+          this.paintResponseRectText(svg, x, y, label, 90, -finishTextTmpNode.width / 2, 10, 0);
         } else if (status === STATUS.false) {
-           this.paintResponseRectText(svg, x, y, label, 80, 10, -r.height / 2+10);
+          this.paintResponseRectText(svg, x, y, label, 90, 10, -finishTextTmpNode.height / 2 + 10, 0);
         } else {
           // other
         }
@@ -452,12 +452,6 @@ class IndexSvg extends Component {
     console.log(this.state.data);
     return (
       <Fragment>
-        <button
-          onClick={() => {
-            this.setState({ flag: !this.state.flag });
-          }}>
-          切换
-        </button>
         <div
           style={{
             position: "relative",
