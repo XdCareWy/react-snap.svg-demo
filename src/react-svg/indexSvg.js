@@ -7,7 +7,6 @@ const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/
 
 const reactWidth = 60;
 const reactHeight = 20;
-const reactBorderRadius = 6;
 
 class IndexSvg extends Component {
   constructor(props) {
@@ -139,11 +138,11 @@ class IndexSvg extends Component {
       prevNode: node.id,
       nextLeftNode: undefined,
       nextRightNode: undefined,
-      label: "finish",
-      condition: undefined,
+      label: "finish哒哒哒哒哒哒多多多多多",
+      condition: "finish哒哒哒哒哒哒多多多多多",
       x: offsetX,
       y: offsetY,
-      status: STATUS.false,
+      status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
     };
     // 更改当前节点的nextLeftNode和nextRightNode
     const changeData = data.map(item => {
@@ -187,7 +186,7 @@ class IndexSvg extends Component {
       condition: "xxxx",
       x: offsetX,
       y: offsetY,
-      status: STATUS.true,
+      status: STATUS.none,
     };
     // 更改当前节点的nextLeftNode和nextRightNode
     const changeData = data.map(item => {
@@ -247,6 +246,8 @@ class IndexSvg extends Component {
       stroke: "rgb(143, 143, 143)",
       "stroke-width": 2,
       "stroke-dasharray": 3,
+      rx: 10,
+      ry: 10,
     });
     return {
       rectGroup: svg.g(rectElement, textGroup),
@@ -306,9 +307,9 @@ class IndexSvg extends Component {
     ];
     // 根据数据进行渲染
     for (let node of data) {
-      const { id, type, prevNode, nextLeftNode, nextRightNode, label, condition, x, y } = node;
+      const { id, type, prevNode, nextLeftNode, nextRightNode, label, condition, x, y, status } = node;
       // 类型为start时，画矩形开始图
-      if (type === TYPE.start || type === TYPE.rect) {
+      if (type === TYPE.start) {
         const rectStart = this.paintRectText(svg, x, y, label);
         // 绑定事件
         rectStart.click(() => {
@@ -327,6 +328,19 @@ class IndexSvg extends Component {
         offsetY
       );
       const { width: tmpWidth, height: tmpHeight, cy: tmpCy } = tmp ? tmp.getBBox() : {};
+
+      if (type === TYPE.rect) {
+        const { textGroup, rectGroup } = this.paintResponseRectText(svg, x, y, label, 80);
+        const r = textGroup.getBBox();
+        if (status === STATUS.true) {
+          this.paintResponseRectText(svg, x, y, label, 80, -r.width / 2, 10);
+        } else if (status === STATUS.false) {
+           this.paintResponseRectText(svg, x, y, label, 80, 10, -r.height / 2+10);
+        } else {
+          // other
+        }
+        rectGroup.remove();
+      }
       // 类型为rhombus时，画菱形
       if (type === TYPE.rhombus) {
         if (tmpCy > y) {
@@ -348,7 +362,7 @@ class IndexSvg extends Component {
         } else if (type === TYPE.rhombus && subType === TYPE.rhombus) {
           const { x_t: startX, y_t: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
           this.paintLine(svg, startX, startY + reactHeight / 2, subX, subY - reactHeight / 2);
-        }  else if (type === TYPE.rhombus && subType === TYPE.rect) {
+        } else if (type === TYPE.rhombus && subType === TYPE.rect) {
           const { x_t: startX, y_t: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
           this.paintLine(svg, startX, startY + reactHeight / 2, subX, subY - reactHeight / 2);
         } else {
@@ -447,12 +461,12 @@ class IndexSvg extends Component {
         <div
           style={{
             position: "relative",
-            width: 1000,
+            width: 1200,
             height: 800,
             border: "1px solid #dfdfdf",
             margin: "20px 0 0 20px",
           }}>
-          <svg id="svgId" width={1000} height={800} />
+          <svg id="svgId" width={1200} height={800} />
         </div>
       </Fragment>
     );
