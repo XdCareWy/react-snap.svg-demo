@@ -183,7 +183,7 @@ class IndexSvg extends Component {
       nextLeftNode: undefined,
       nextRightNode: undefined,
       label: "xxxx",
-      condition: `xxxxid: ${data.length+1}`,
+      condition: `xxxxid: ${data.length + 1}`,
       x: offsetX,
       y: offsetY,
       status: STATUS.none,
@@ -203,13 +203,13 @@ class IndexSvg extends Component {
   };
 
   // 获取要删除的所有id
-  getDeleteIds = (node, data, res=[]) => {
+  getDeleteIds = (node, data, res = []) => {
     res.push(node.id);
-    if(node.nextLeftNode) {
+    if (node.nextLeftNode) {
       const d = data.find(item => item.id === node.nextLeftNode);
       this.getDeleteIds(d, data, res);
-  }
-    if(node.nextRightNode) {
+    }
+    if (node.nextRightNode) {
       const d = data.find(item => item.id === node.nextRightNode);
       this.getDeleteIds(d, data, res);
     }
@@ -219,25 +219,34 @@ class IndexSvg extends Component {
   // 操作 - 删除逻辑单元
   handleDelete = (svg, e, label, node, trueOrFalse) => {
     const { data } = this.state;
-    const  deleteIds = this.getDeleteIds(node, data);
+    const deleteIds = this.getDeleteIds(node, data);
     const prevNode = data.find(item => item.id === node.prevNode);
     let changeData = data.map(item => {
-      if(item.id === prevNode.id) {
+      if (item.id === prevNode.id) {
         return {
           ...item,
           nextLeftNode: trueOrFalse === "F" ? undefined : item.nextLeftNode,
-          nextRightNode: trueOrFalse === "T" ? undefined : item.nextRightNode
-        }
+          nextRightNode: trueOrFalse === "T" ? undefined : item.nextRightNode,
+        };
       }
       return item;
     });
 
     changeData = changeData.filter(item => !deleteIds.includes(item.id));
-    this.setState({data: changeData})
+    this.setState({ data: changeData });
   };
 
   // 画根据宽度自动换行的矩形文本
-  paintResponseRectText = (svg, x, y, text, lineWidth = 100, offsetX = 0, offsetY = 0, dasharray = 3) => {
+  paintResponseRectText = (
+    svg,
+    x,
+    y,
+    text = "在逻辑配置中进行配置",
+    lineWidth = 100,
+    offsetX = 0,
+    offsetY = 0,
+    dasharray = 3
+  ) => {
     if (!text)
       return {
         rectGroup: undefined,
@@ -337,86 +346,103 @@ class IndexSvg extends Component {
         },
       },
     ];
-    // 根据数据进行渲染
-    for (let node of data) {
-      const { id, type, prevNode, nextLeftNode, nextRightNode, label, condition, x, y, status } = node;
-      // 类型为start时，画矩形开始图
-      if (type === TYPE.start) {
-        const rectStart = this.paintRectText(svg, x, y, label);
+    // 对数进行深度优先遍历
+    let offsetRightMaxX = 0;
+    const lineXY = []; // 记录所有连接点的位置，最后跟库此数组画箭头
+    const stack = []; // 模拟一个栈
+    const result = []; // 存放遍历后的结果
+    const root = data.find(item => item.type === TYPE.start); // 找到根节点
+    stack.push(root); // 将根节点放到栈中
+    while (stack.length) {
+      const top = stack.pop(); // 取出栈中的顶部元素
+      /********* 判断其类型，并画出对应的构图 start **********/
+      if (top.type === TYPE.start) {
+        const rectStart = this.paintRectText(svg, top.x, top.y, top.label);
+        const { cx, cy, height } = rectStart.getBBox();
+        lineXY.push({
+          id: top.id,
+          x: cx,
+          y: cy + height / 2,
+          type: top.type,
+          left: top.nextLeftNode,
+          right: top.nextRightNode,
+        });
         // 绑定事件
         rectStart.click(() => {
           const { x, y, width, height } = rectStart.getBBox();
-          NodeOperation(svg, x + width / 2, y + height / 2, 50, operationObj, "开始", node);
+          NodeOperation(svg, x + width / 2, y + height / 2, 50, operationObj, "开始", top);
         });
       }
-      // 画临时文字,来获取当前文本所占的宽度和高度
-      const { rectGroup, textGroup: tmp } = this.paintResponseRectText(
-        svg,
-        x,
-        y,
-        condition,
-        lineWidth,
-        offsetX,
-        offsetY
-      );
-      const { width: tmpWidth, height: tmpHeight, cy: tmpCy } = tmp ? tmp.getBBox() : {};
-
-      if (type === TYPE.rect) {
-        const { textGroup, rectGroup } = this.paintResponseRectText(svg, x, y, label, 80);
-        const finishTextTmpNode = textGroup.getBBox();
-        if (status === STATUS.true) {
-          this.paintResponseRectText(svg, x, y, label, 90, -finishTextTmpNode.width / 2, 10, 0);
-        } else if (status === STATUS.false) {
-          this.paintResponseRectText(svg, x, y, label, 90, 10, -finishTextTmpNode.height / 2 + 10, 0);
-        } else {
-          // other
-        }
-        rectGroup.remove();
-      }
       // 类型为rhombus时，画菱形
-      if (type === TYPE.rhombus) {
-        if (tmpCy > y) {
-          offsetY = y - tmpCy;
-        } else {
-          offsetY = tmpCy - y;
-        }
+      if (top.type === TYPE.rhombus) {
+        // 画临时文字,来获取当前文本所占的宽度和高度
+        const { rectGroup: tmpRectGroup, textGroup: tmpTextGroup } = this.paintResponseRectText(
+          svg,
+          0,
+          0,
+          top.condition,
+          lineWidth
+        );
+        const { width: tmpWidth = 0, height: tmpHeight = 0 } = tmpTextGroup ? tmpTextGroup.getBBox() : {};
         // 画矩形文字最终的位置
-        this.paintResponseRectText(svg, x, y, condition, tmpWidth, offsetX, -tmpHeight / 2);
+        const { rectGroup } = this.paintResponseRectText(
+          svg,
+          top.x,
+          top.y,
+          top.condition,
+          tmpWidth,
+          offsetX,
+          -tmpHeight / 2
+        );
+        const { x: lastX, width: lastW } = rectGroup.getBBox();
+        if (offsetRightMaxX < lastX + lastW) {
+          offsetRightMaxX = lastX + lastW;
+        }
         // 画菱形
-        this.paintLogicUnit(svg, x, y, operationObj, node, tmpWidth, tmpHeight / 2 + 20);
+        this.paintLogicUnit(svg, top.x, top.y, operationObj, top, tmpWidth, tmpHeight / 2 + 20);
+        const logicCoordinate = this.computeLogic(top.x, top.y, tmpWidth, tmpHeight / 2 + 20);
+        lineXY.push({
+          id: top.id,
+          x: logicCoordinate.x,
+          y: logicCoordinate.y,
+          x_t: logicCoordinate.x_t,
+          y_t: logicCoordinate.y_t + 12,
+          x_f: logicCoordinate.x_f + 12,
+          y_f: logicCoordinate.y_f,
+          type: top.type,
+          left: top.nextLeftNode,
+          right: top.nextRightNode,
+        });
+        tmpRectGroup && tmpRectGroup.remove();
       }
-
-      // 画线，从T开始往下画
-      if (nextLeftNode) {
-        const { x: subX, y: subY, type: subType } = data.find(item => item.id === nextLeftNode) || {};
-        if (type === TYPE.start && subType === TYPE.rhombus && subX && subY) {
-          this.paintLine(svg, x, y + reactHeight / 2, subX, subY - reactHeight / 2);
-        } else if (type === TYPE.rhombus && subType === TYPE.rhombus) {
-          const { x_t: startX, y_t: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
-          this.paintLine(svg, startX, startY + reactHeight / 2, subX, subY - reactHeight / 2);
-        } else if (type === TYPE.rhombus && subType === TYPE.rect) {
-          const { x_t: startX, y_t: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
-          this.paintLine(svg, startX, startY + reactHeight / 2, subX, subY - reactHeight / 2);
-        } else {
-          //  error
-        }
-      }
-      // 画线，从F往右画
-      if (nextRightNode) {
-        const { x: subX, y: subY, type: subType } = data.find(item => item.id === nextRightNode) || {};
-        if (type === TYPE.rhombus && subType === TYPE.rhombus) {
-          const { x_f: startX, y_f: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
-          this.paintLine(svg, startX + 12, startY, subX - reactWidth / 2, subY);
-        } else if (type === TYPE.rhombus && subType === TYPE.rect) {
-          const { x_f: startX, y_f: startY } = this.computeLogic(x, y, tmpWidth, tmpHeight / 2 + 20);
-          this.paintLine(svg, startX + 12, startY, subX, subY);
-        } else {
-          //  error
-        }
-      }
-      // 删除临时文字
-      rectGroup && rectGroup.remove();
+      /********* 判断其类型，并画出对应的构图 end  **********/
+      result.push(top); // 将遍历过的节点放到result中
+      // 找出当前节点的右子树的根节点，如果存在，将其放到栈中
+      const rightChild = data.find(item => item.id === top.nextRightNode);
+      if (rightChild) stack.push(rightChild);
+      // 找出当前节点的左子树的根节点，如果存在，将其放到栈中
+      const leftChild = data.find(item => item.id === top.nextLeftNode);
+      if (leftChild) stack.push(leftChild);
     }
+    for (let line of lineXY) {
+      const { x, y, type, left, right, x_t, y_t, x_f, y_f } = line;
+      if (left) {
+        const leftCoordinate = lineXY.find(item => item.id === left);
+        if (type === TYPE.start && leftCoordinate.type === TYPE.rhombus) {
+          this.paintLine(svg, x, y, leftCoordinate.x, leftCoordinate.y - reactHeight / 2);
+        } else if (type === TYPE.rhombus && leftCoordinate.type === TYPE.rhombus) {
+          this.paintLine(svg, x_t, y_t, leftCoordinate.x, leftCoordinate.y - reactHeight / 2);
+        }
+      }
+      if (right) {
+        const rightCoordinate = lineXY.find(item => item.id === right);
+        if (type === TYPE.rhombus && rightCoordinate.type === TYPE.rhombus) {
+          this.paintLine(svg, x_f, y_f, rightCoordinate.x - reactWidth / 2, rightCoordinate.y);
+        }
+      }
+    }
+    console.log(offsetRightMaxX);
+
   };
 
   // 带箭头的线

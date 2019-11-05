@@ -1,7 +1,7 @@
 const TYPE = {
-  start: 1,
-  rect: 2,
-  rhombus: 3,
+  start: 1, // 开始节点
+  finish: 2, // 完成节点
+  rhombus: 3, // 逻辑节点
 };
 const STATUS = {
   none: 0,
@@ -179,19 +179,19 @@ const data_o = [
   // { id: 6, type: 3, prevNode: 3, label: "xxxx", condition: "xxx", x: 455, y: 225, status: 1 },
 ];
 const data_o1 = [
+  { id: 1, type: 1, nextLeftNode: 2, label: "开始", condition: "", x: 75, y: 65, x_t: 75, y_t: 65, status: 0 },
   {
-    id: 1,
-    type: TYPE.start,
-    prevNode: undefined,
-    nextLeftNode: 2,
+    id: 2,
+    type: 3,
+    prevNode: 1,
+    nextLeftNode: 3,
     nextRightNode: undefined,
-    label: "开始",
-    condition: "",
-    x: 55,
-    y: 65,
-    x_t: 55,
-    y_t: 65,
-    status: STATUS.none,
+    label: "京腾支付价",
+    condition:
+      "JDPrice in api.price && JTPrice > 1000 && (JXiang > 1000 && JXiang < 10000) || JDPrice in api.price && JTPrice > 1000 && (JXiang > 1000 && JXiang < 10000)",
+    x: 75,
+    y: 125,
+    status: 1,
   },
 ];
 

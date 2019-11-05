@@ -44,7 +44,6 @@ export function NodeOperation(svg, x, y, r, operationObj, text, node) {
   }
   const g = svg.g(circleE, centerG, ...oo);
   g.attr({
-    class: "hide",
     id: "operationId",
   });
   return g;
