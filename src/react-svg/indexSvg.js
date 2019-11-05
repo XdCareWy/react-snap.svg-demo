@@ -183,7 +183,7 @@ class IndexSvg extends Component {
       nextLeftNode: undefined,
       nextRightNode: undefined,
       label: "xxxx",
-      condition: "xxxx",
+      condition: `xxxxid: ${data.length+1}`,
       x: offsetX,
       y: offsetY,
       status: STATUS.none,
@@ -200,6 +200,40 @@ class IndexSvg extends Component {
       return item;
     });
     this.setState({ data: [...changeData, newNode] });
+  };
+
+  // 获取要删除的所有id
+  getDeleteIds = (node, data, res=[]) => {
+    res.push(node.id);
+    if(node.nextLeftNode) {
+      const d = data.find(item => item.id === node.nextLeftNode);
+      this.getDeleteIds(d, data, res);
+  }
+    if(node.nextRightNode) {
+      const d = data.find(item => item.id === node.nextRightNode);
+      this.getDeleteIds(d, data, res);
+    }
+    return res;
+  };
+
+  // 操作 - 删除逻辑单元
+  handleDelete = (svg, e, label, node, trueOrFalse) => {
+    const { data } = this.state;
+    const  deleteIds = this.getDeleteIds(node, data);
+    const prevNode = data.find(item => item.id === node.prevNode);
+    let changeData = data.map(item => {
+      if(item.id === prevNode.id) {
+        return {
+          ...item,
+          nextLeftNode: trueOrFalse === "F" ? undefined : item.nextLeftNode,
+          nextRightNode: trueOrFalse === "T" ? undefined : item.nextRightNode
+        }
+      }
+      return item;
+    });
+
+    changeData = changeData.filter(item => !deleteIds.includes(item.id));
+    this.setState({data: changeData})
   };
 
   // 画根据宽度自动换行的矩形文本
@@ -273,9 +307,7 @@ class IndexSvg extends Component {
       },
       {
         label: "-",
-        clickFn: function(svg, e, label) {
-          console.log(label);
-        },
+        clickFn: this.handleDelete,
         attr: {
           circleStroke: "#920000",
           circleFill: "#FCDBE0",
