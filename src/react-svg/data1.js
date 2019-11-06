@@ -161,7 +161,7 @@ const data = [
 
 const data_o = [
   { id: 1, type: 1, nextLeftNode: 2, label: "开始", condition: "", x: 75, y: 65, x_t: 75, y_t: 65, status: 0 },
-  { id: 2, type: 3, prevNode: 1,nextLeftNode:undefined, nextRightNode: undefined, label: "京腾支付价", condition: "JDPrice in api.price && JTPrice > 1000 && (JXiang > 1000 && JXiang < 10000) || JDPrice in api.price && JTPrice > 1000 && (JXiang > 1000 && JXiang < 10000)", x: 75, y: 125, status: 1 },
+  { id: 2, type: 3, prevNode: 1,nextLeftNode:undefined, nextRightNode: undefined, label: "京腾支付价", condition: "JDPrice in api.price && JTPrice > 1000 && (JXiang > 1000 && JXiang < 10000) || JDPrice in api.price && JTPrice > 1000 && (JXiang > 1000 && JXiang < 10000)", x: 75, y: 155, status: 1 },
   // {
   //   id: 3,
   //   type: 3,
