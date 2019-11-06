@@ -13,11 +13,63 @@ const rhombusGraph = (svg, x = 0, y = 0, width = 60, height = 20, strokeColor = 
     .polyline([x - width / 2, y, x, y - height / 2, x + width / 2, y, x, y + height / 2, x - width / 2, y])
     .attr({
       class: "cursor-pointer",
-      fill: "rgb(244,244,244)",
+      fill: "#FEFEFE",
       stroke: strokeColor,
       "stroke-width": 2,
       "stroke-dasharray": 0,
     });
+};
+
+/**
+ * 逻辑可视化 - 基础图形 - 线段
+ * @param svg
+ * @param fromX 线段开始点x坐标
+ * @param fromY 线段开始点y坐标
+ * @param toX 线段结束点x坐标
+ * @param toY 线段结束点y坐标
+ * @param color 线段的颜色，默认 "#8F8F8F"
+ * @returns 线段
+ */
+const lineGraph = (svg, fromX, fromY, toX, toY, color = "#8F8F8F") => {
+  return svg.line(fromX, fromY, toX, toY).attr({
+    fill: "transparent",
+    stroke: color,
+    "stroke-width": 2,
+    "stroke-dasharray": 0,
+  });
+};
+
+/**
+ * 逻辑可视化 - 基础图形 - 圆（可带文本）
+ * @param svg
+ * @param x 圆心x坐标
+ * @param y 圆心y坐标
+ * @param radius 圆的半径
+ * @param text 圆内的文本
+ * @returns {React.ReactSVGElement | never}
+ */
+const circleGraph = (svg, x, y, radius, text) => {
+  const textElement = svg.text(x, y, text).attr({
+    class: "text-center",
+  });
+  const roundElement = svg.circle(x, y, radius).attr({
+    fill: "rgb(215,216,217)",
+    "stroke-width": 1,
+    "stroke-dasharray": 0,
+    stroke: "gray",
+  });
+  const circleGroup = svg.g(roundElement, textElement);
+  if (text) {
+    circleGroup.hover(
+      function() {
+        circleGroup.select("circle").animate({ r: radius + 2 }, 100);
+      },
+      function() {
+        circleGroup.select("circle").animate({ r: radius }, 100);
+      }
+    );
+  }
+  return circleGroup;
 };
 
 /**
@@ -89,7 +141,7 @@ const textGraph = (svg, x, y, text) => {
 const rectGraph = (svg, x, y, width, height, dasharray = 3) => {
   return svg.rect(x, y, width, height, 0, 0).attr({
     fill: "transparent",
-    stroke: "rgb(143, 143, 143)",
+    stroke: "#8F8F8F",
     "stroke-width": 2,
     "stroke-dasharray": dasharray,
     rx: 10,
