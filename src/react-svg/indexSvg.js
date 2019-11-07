@@ -7,6 +7,10 @@ import { logicGraph, computeLogicPoint } from "./combinationGraph/index";
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
+const finishMaxWidth = 100; // 结束节点最大宽度
+const conditionMaxWidth = 200; // 条件表达式最大宽度
+const verticalSpacing = 60; // 节点之间的垂直间距
+const horizontalSpacing = 100; // 节点之间的水平间距
 class IndexSvg extends Component {
   constructor(props) {
     super(props);
@@ -27,34 +31,13 @@ class IndexSvg extends Component {
 
   // 操作 - 添加结束单元
   handleAddFinish = (svg, e, label, node, trueOrFalse) => {
-    const { textGroup } = responseRectText(svg, 0, 0, node.condition, 200);
-    const { x_t, y_t, x_f, y_f } = computeLogicPoint(
-      node.x,
-      node.y,
-      textGroup.getBBox().width,
-      textGroup.getBBox().height / 2 + 20
-    );
-    let offsetX = 0;
-    let offsetY = 0;
-    if (trueOrFalse === "T") {
-      offsetX = x_t;
-      offsetY = y_t + 80;
-    } else {
-      offsetX = x_f + 110;
-      offsetY = y_f;
-    }
-    textGroup.remove();
     const { data } = this.state;
     const finishNode = {
       id: data.length + 1,
       type: TYPE.finish,
       prevNode: node.id,
-      nextLeftNode: undefined,
-      nextRightNode: undefined,
-      label: "finish哒哒哒哒哒哒多多多多多",
+      label: "finish哒哒哒哒哒哒多少时诵诗书所大所大所多多多多label",
       condition: "finish哒哒哒哒哒哒多多多多多",
-      x: offsetX,
-      y: offsetY,
       status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
     };
     // 更改当前节点的nextLeftNode和nextRightNode
@@ -198,11 +181,10 @@ class IndexSvg extends Component {
   };
 
   logicAndCircleTextGraph = (svg, x, y, currentNode, operationObj) => {
-    const lineWidth = 200; // 矩形文本框的最大宽度
     // 画临时文字,来获取当前文本所占的宽度和高度
-    const { width, height } = getResponseRectTextBox(svg, 0, 0, currentNode.condition, lineWidth);
+    const { width, height } = getResponseRectTextBox(svg, 0, 0, currentNode.condition, conditionMaxWidth);
     // 绘制矩形文本
-    const { rectGroup } = responseRectText(svg, x, y, currentNode.condition, lineWidth);
+    const { rectGroup } = responseRectText(svg, x, y, currentNode.condition, conditionMaxWidth);
     // 绘制逻辑单元
     const r = logicGraph(svg, x, y, operationObj, currentNode, width, height);
     const logicCoordinate = computeLogicPoint(x, y, width, height);
@@ -217,22 +199,27 @@ class IndexSvg extends Component {
 
   recursionPaint = (svg, data, operationObj) => {
     let offsetRightMaxX = 1;
+    let countRight = 0;
     // 内部递归函数
     const _innerRecursion = (currentNode, x, y) => {
-      // 画菱形节点 - 左节点
-      const { x_t, y_t, x_f, y_f } = this.logicAndCircleTextGraph(svg, x, y, currentNode, operationObj);
-      let countRight = 1;
-      const left = data.find(item => item.id === currentNode.nextLeftNode);
-      if (left) {
-        offsetRightMaxX = _innerRecursion(left, x_t, y_t + 100);
+      console.log(`${currentNode.id} - ${countRight}`);
+      if (currentNode.type === TYPE.finish) {
+        const { width, height } = getResponseRectTextBox(svg, 0, 0, currentNode.label, finishMaxWidth);
+        let finishX = currentNode.status === STATUS.true ? x - width / 2 - 50 + 10 : x - width / 2;
+        let finishY = currentNode.status === STATUS.true ? y - height / 2 + verticalSpacing : y - height / 2 + 20;
+        responseRectText(svg, finishX, finishY, currentNode.label, finishMaxWidth, 0);
+      } else if (currentNode.type === TYPE.rhombus) {
+        const { x_t, y_t, x_f, y_f } = this.logicAndCircleTextGraph(svg, x, y, currentNode, operationObj);
+        const left = data.find(item => item.id === currentNode.nextLeftNode);
+        if (left) {
+          _innerRecursion(left, left.type === TYPE.rhombus ? x_t : x, y_t + verticalSpacing);
+        }
+        const right = data.find(item => item.id === currentNode.nextRightNode);
+        if (right) {
+          countRight = countRight + 1;
+          _innerRecursion(right, x_f + horizontalSpacing, y_f);
+        }
       }
-      const right = data.find(item => item.id === currentNode.nextRightNode);
-      if (right) {
-        offsetRightMaxX = _innerRecursion(right, x_f + offsetRightMaxX * 200, y_f);
-        countRight = countRight + offsetRightMaxX;
-      }
-      console.log(offsetRightMaxX);
-      return countRight;
     };
     const top = data.find(item => item.type === TYPE.start);
     // 1. 画开始节点
@@ -243,8 +230,9 @@ class IndexSvg extends Component {
       const { x, y, width, height } = rectStart.getBBox();
       NodeOperation(svg, x + width / 2, y + height / 2, 50, operationObj, "开始", top);
     });
+    // 开始节点之后的第一个节点
     const first = data.find(item => item.id === top.nextLeftNode);
-    _innerRecursion(first, cx, cy + height / 2 + 100);
+    first && _innerRecursion(first, cx, cy + height / 2 + verticalSpacing);
   };
 
   render() {
