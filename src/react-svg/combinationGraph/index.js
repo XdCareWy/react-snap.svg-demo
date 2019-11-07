@@ -10,12 +10,13 @@ import { rhombusGraph, lineGraph, circleGraph } from "../basicGraph/index";
  * 菱形连接点 - F点x_f，y_f
  * @param x 菱形中心点x坐标
  * @param y 菱形中心点y坐标
- * @param offsetCenterX 中心连接点偏离菱形y轴的距离
+ // * @param offsetCenterX 中心连接点偏离菱形y轴的距离
  * @param offsetCenterY 中心连接点偏离菱形x轴的距离
  * @returns {{y_f: *, x: *, y: *, y_c: *, x_t: *, x_c: *, x_f: *, y_t: *}}
  */
-export const computeLogicPoint = (x, y, offsetCenterX = 100, offsetCenterY = 50) => {
-  const w = offsetCenterX < 100 ? 100 : offsetCenterX;
+export const computeLogicPoint = (x, y, offsetCenterY = 50) => {
+  const w = 150;
+  // const w = offsetCenterX < 150 ? 150 : offsetCenterX;
   const h = offsetCenterY < 50 ? 50 : offsetCenterY;
   const x_c = x;
   const y_c = y + h;
@@ -47,7 +48,7 @@ export const computeLogicPoint = (x, y, offsetCenterX = 100, offsetCenterY = 50)
  * @returns {React.ReactSVGElement | never}
  */
 export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetCenterY) => {
-  const { x_f, y_f, x_c, y_c, x_t, y_t } = computeLogicPoint(x, y, offsetCenterX, offsetCenterY);
+  const { x_f, y_f, x_c, y_c, x_t, y_t } = computeLogicPoint(x, y, offsetCenterY);
   // 1. 菱形 - 连接点 的line
   const rhombusToCenterLine = lineGraph(svg, x, y, x_c, y_c);
   // 2. 连接点 - F 的line
@@ -69,5 +70,7 @@ export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetC
   trueE.click(() => {
     NodeOperation(svg, x_t, y_t, 50, operationObj, "T", node);
   });
+  // 6. 画折线
+  // lineGraph(svg, x_f, y_f, x_f + 100, y_f);
   return svg.g(rhombusToCenterLine, centerToFalseLine, centerToTrueLine, rhombusE, centerE, trueE, falseE);
 };
