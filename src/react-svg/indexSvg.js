@@ -7,7 +7,7 @@ import { logicGraph, computeLogicPoint } from "./combinationGraph/index";
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
-const finishMaxWidth = 100; // 结束节点最大宽度
+const finishMaxWidth = 120; // 结束节点最大宽度
 const conditionMaxWidth = 200; // 条件表达式最大宽度
 const verticalSpacing = 60; // 节点之间的垂直间距
 const horizontalSpacing = 100; // 节点之间的水平间距
@@ -199,39 +199,48 @@ class IndexSvg extends Component {
 
   recursionPaint = (svg, data, operationObj) => {
     let offsetRightMaxX = 1;
-    let countRight = 0;
     // 内部递归函数
     const _innerRecursion = (currentNode, x, y) => {
-      console.log(`${currentNode.id} - ${countRight}`);
       if (currentNode.type === TYPE.finish) {
+        // 绘制结束操作
         const { width, height } = getResponseRectTextBox(svg, 0, 0, currentNode.label, finishMaxWidth);
         let finishX = currentNode.status === STATUS.true ? x - width / 2 - 50 + 10 : x - width / 2;
-        let finishY = currentNode.status === STATUS.true ? y - height / 2 + verticalSpacing : y - height / 2 + 20;
-        responseRectText(svg, finishX, finishY, currentNode.label, finishMaxWidth, 0);
+        let finishY = currentNode.status === STATUS.true ? y - height / 2 - 20 + verticalSpacing : y - height / 2 + 20;
+        responseRectText(svg, finishX, finishY, currentNode.label, finishMaxWidth, 0, "rgb(240,240,240)");
       } else if (currentNode.type === TYPE.rhombus) {
+        // 绘制逻辑单元
         const { x_t, y_t, x_f, y_f } = this.logicAndCircleTextGraph(svg, x, y, currentNode, operationObj);
+        // 右偏移量与当前逻辑F节点的x坐标对比，谁大用谁
+        if (offsetRightMaxX < x_f) {
+          offsetRightMaxX = x_f;
+        }
         const left = data.find(item => item.id === currentNode.nextLeftNode);
         if (left) {
-          _innerRecursion(left, left.type === TYPE.rhombus ? x_t : x, y_t + verticalSpacing);
+          // 迭代左子树
+          _innerRecursion(left, x_t, y_t + verticalSpacing);
         }
         const right = data.find(item => item.id === currentNode.nextRightNode);
         if (right) {
-          countRight = countRight + 1;
-          _innerRecursion(right, x_f + horizontalSpacing, y_f);
+          // 迭代右子树
+          _innerRecursion(right, offsetRightMaxX + horizontalSpacing, y_f);
+        }
+        // 更新向右的偏移量
+        if (x_f > offsetRightMaxX) {
+          offsetRightMaxX = x_f;
         }
       }
     };
-    const top = data.find(item => item.type === TYPE.start);
+    const start = data.find(item => item.type === TYPE.start);
     // 1. 画开始节点
-    const rectStart = paintRectText(svg, top.x, top.y, top.label);
+    const rectStart = paintRectText(svg, start.x, start.y, start.label);
     const { cx, cy, height } = rectStart.getBBox();
     // 绑定事件
     rectStart.click(() => {
       const { x, y, width, height } = rectStart.getBBox();
-      NodeOperation(svg, x + width / 2, y + height / 2, 50, operationObj, "开始", top);
+      NodeOperation(svg, x + width / 2, y + height / 2, 50, operationObj, "开始", start);
     });
     // 开始节点之后的第一个节点
-    const first = data.find(item => item.id === top.nextLeftNode);
+    const first = data.find(item => item.id === start.nextLeftNode);
     first && _innerRecursion(first, cx, cy + height / 2 + verticalSpacing);
   };
 

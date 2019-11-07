@@ -196,9 +196,11 @@ export const getResponseRectTextBox = (svg, x, y, text, lineMaxWidth = 100, dash
  * @param text 文本
  * @param lineMaxWidth 矩形的最大宽度
  * @param dasharray 矩形外围虚线程度
+ * @param dasharray 矩形外围虚线程度
+ * @param fill 矩形内颜色，默认 transparent（透明）
  * @returns {{rectGroup: React.ReactSVGElement | never, textGroup: React.ReactSVGElement | never}}
  */
-export const responseRectText = (svg, x, y, text, lineMaxWidth = 100, dasharray = 3) => {
+export const responseRectText = (svg, x, y, text, lineMaxWidth = 100, dasharray = 3, fill = "transparent") => {
   if (!text) throw new Error("text is not exist");
   const words = text.split("").reverse();
   let line = [];
@@ -231,7 +233,7 @@ export const responseRectText = (svg, x, y, text, lineMaxWidth = 100, dasharray 
   // 根据文本字的宽高来确定外围方框的位置
   const { x: gx, y: gy, width, height } = textGroup.getBBox();
   const [rectX, rectY, rectWidth, rectHeight] = [gx - 10, gy - 10, width + 20, height + 20];
-  const rectGroup = rectGraph(svg, rectX, rectY, rectWidth, rectHeight, dasharray);
+  const rectGroup = rectGraph(svg, rectX, rectY, rectWidth, rectHeight, dasharray, 10, fill);
   return {
     rectGroup: svg.g(rectGroup, textGroup),
     textGroup: textGroup,
