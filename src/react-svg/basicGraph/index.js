@@ -1,4 +1,19 @@
 /**
+ * 逻辑可视化 - 基础图形 - 开始图形
+ * @param svg
+ * @param x 开始x坐标
+ * @param y 开始x坐标
+ * @param text 开始文案
+ * @returns {React.ReactSVGElement | never}
+ */
+export const paintRectText = (svg, x, y, text) => {
+  const { width, height } = getTextNodeBox(svg, text);
+  const textE = textGraph(svg, x + width / 2, y + height / 2 + 8, text);
+  const rectE = rectGraph(svg, x, y, width * 2, height + 8, 0, 5, "rgb(240,240,240)");
+  return svg.g(rectE, textE);
+};
+
+/**
  * 逻辑可视化 - 基础图形 - 菱形
  * @param svg
  * @param x 菱形x坐标，默认 0
@@ -8,7 +23,7 @@
  * @param strokeColor 菱形外围的颜色，默认 gray
  * @returns 菱形图形
  */
-const rhombusGraph = (svg, x = 0, y = 0, width = 60, height = 20, strokeColor = "gray") => {
+export const rhombusGraph = (svg, x = 0, y = 0, strokeColor = "gray", width = 60, height = 20) => {
   return svg
     .polyline([x - width / 2, y, x, y - height / 2, x + width / 2, y, x, y + height / 2, x - width / 2, y])
     .attr({
@@ -30,7 +45,7 @@ const rhombusGraph = (svg, x = 0, y = 0, width = 60, height = 20, strokeColor = 
  * @param color 线段的颜色，默认 "#8F8F8F"
  * @returns 线段
  */
-const lineGraph = (svg, fromX, fromY, toX, toY, color = "#8F8F8F") => {
+export const lineGraph = (svg, fromX, fromY, toX, toY, color = "#8F8F8F") => {
   return svg.line(fromX, fromY, toX, toY).attr({
     fill: "transparent",
     stroke: color,
@@ -48,7 +63,7 @@ const lineGraph = (svg, fromX, fromY, toX, toY, color = "#8F8F8F") => {
  * @param text 圆内的文本
  * @returns {React.ReactSVGElement | never}
  */
-const circleGraph = (svg, x, y, radius, text) => {
+export const circleGraph = (svg, x, y, radius, text) => {
   const textElement = svg.text(x, y, text).attr({
     class: "text-center",
   });
@@ -82,7 +97,7 @@ const circleGraph = (svg, x, y, radius, text) => {
  * @param color 线段及箭头外围的颜色，默认 "#8F8F8F"
  * @returns 带箭头的线段图形
  */
-const arrowLine = (svg, fromX = 0, fromY = 0, toX = 10, toY = 20, color = "#8F8F8F") => {
+export const arrowLine = (svg, fromX = 0, fromY = 0, toX = 10, toY = 20, color = "#8F8F8F") => {
   const arrowPath = svg.path("M0,0 L0,4 L3,2 L0,0").attr({
     fill: color,
   });
@@ -136,16 +151,18 @@ const textGraph = (svg, x, y, text) => {
  * @param width 矩形的宽度
  * @param height 矩形的高度
  * @param dasharray 矩形外围线的间隔（实线/虚线），默认 3
+ * @param borderRadius 矩形外围线的圆角，默认 10
+ * @param fill 矩形内颜色，默认 transparent（透明）
  * @returns 矩形图形
  */
-const rectGraph = (svg, x, y, width, height, dasharray = 3) => {
+const rectGraph = (svg, x, y, width, height, dasharray = 3, borderRadius = 10, fill = "transparent") => {
   return svg.rect(x, y, width, height, 0, 0).attr({
-    fill: "transparent",
+    fill: fill,
     stroke: "#8F8F8F",
-    "stroke-width": 2,
+    "stroke-width": 1,
     "stroke-dasharray": dasharray,
-    rx: 10,
-    ry: 10,
+    rx: borderRadius,
+    ry: borderRadius,
   });
 };
 
@@ -159,7 +176,7 @@ const rectGraph = (svg, x, y, width, height, dasharray = 3) => {
  * @param dasharray 矩形外围虚线程度
  * @returns {{width: number, height: number}}
  */
-const getResponseRectTextBox = (svg, x, y, text, lineMaxWidth = 100, dasharray = 3) => {
+export const getResponseRectTextBox = (svg, x, y, text, lineMaxWidth = 100, dasharray = 3) => {
   let width, height;
   const { rectGroup } = responseRectText(svg, x, y, text, lineMaxWidth, dasharray);
   width = rectGroup.getBBox().width;
