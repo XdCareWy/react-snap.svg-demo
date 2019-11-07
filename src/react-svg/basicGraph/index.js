@@ -111,6 +111,21 @@ export const arrowLine = (svg, fromX = 0, fromY = 0, toX = 10, toY = 20, color =
   });
 };
 
+export const brokenLineGraph = (svg, fromX, fromY, toX, toY, color="#8F8F8F") => {
+  const arrowPath = svg.path("M0,0 L0,4 L3,2 L0,0").attr({
+    fill: color,
+  });
+  const markerEnd = arrowPath.marker(0, 0, 12, 12, 3, 2);
+  const brokenX = toX;
+  const brokenY = fromY;
+  return svg.path(`M${fromX},${fromY} L${brokenX},${brokenY} L${toX},${toY}`).attr({
+    stroke: color,
+    strokeWidth: 2,
+    fill: "transparent",
+    "marker-end": markerEnd,
+  });
+};
+
 /**
  * 逻辑可视化 - 计算单元 - 计算文本的宽高
  * @param svg

@@ -2,7 +2,7 @@ import React, { Component, Fragment } from "react";
 import "./index.css";
 import { TYPE, data_o, STATUS } from "./data1";
 import { NodeOperation } from "./basicGraph/NodeOperation";
-import { responseRectText, getResponseRectTextBox, paintRectText, arrowLine } from "./basicGraph/index";
+import { responseRectText, getResponseRectTextBox, paintRectText, arrowLine, brokenLineGraph } from "./basicGraph/index";
 import { logicGraph, computeLogicPoint } from "./combinationGraph/index";
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
@@ -66,7 +66,7 @@ class IndexSvg extends Component {
       nextRightNode: undefined,
       label: "xxxx",
       condition: `xxxxx: ${data.length + 1}`,
-      status:  trueOrFalse === "F" ? STATUS.false : STATUS.true,
+      status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
     };
     // 更改当前节点的nextLeftNode和nextRightNode
     const changeData = data.map(item => {
@@ -190,23 +190,27 @@ class IndexSvg extends Component {
         const { width, height } = getResponseRectTextBox(svg, 0, 0, currentNode.label, finishMaxWidth);
         let finishX = currentX - width / 2 - 50 + 10;
         let finishY = currentY - height / 2 - 20 + verticalSpacing;
-        responseRectText(svg, finishX, finishY, currentNode.label, finishMaxWidth, 0, "rgb(240,240,240)");
-        if(currentNode.status === STATUS.true) {
+        const {rectGroup} = responseRectText(svg, finishX, finishY, currentNode.label, finishMaxWidth, 0, "rgb(240,240,240)");
+        if (currentNode.status === STATUS.true) {
           arrowLine(svg, prevX, prevY, prevX, finishY - height / 2 + 17);
-        }else if(currentNode.status === STATUS.false) {
-          arrowLine(svg, prevX, prevY+12, prevX, finishY - height / 2 + 17);
+        } else if (currentNode.status === STATUS.false) {
+          // todo: 画折线
+          // brokenLineGraph(svg, prevX+12,prevY,currentX-30,currentY)
+          const {cx,cy,height} = rectGroup.getBBox();
+          brokenLineGraph(svg, prevX+12, prevY, cx, cy-height/2);
         }
         // 记录当前向右偏移量
-        offsetRightMaxX = currentX + width / 2;
+        if(offsetRightMaxX < currentX + width / 2) {
+          offsetRightMaxX = currentX + width / 2;
+        }
         console.log(`${currentNode.id} ---- ${offsetRightMaxX}`);
       } else if (currentNode.type === TYPE.rhombus) {
         // 绘制逻辑单元
         const { x_t, y_t, x_f, y_f } = this.logicAndCircleTextGraph(svg, currentX, currentY, currentNode, operationObj);
-        if(currentNode.status === STATUS.true) {
+        if (currentNode.status === STATUS.true) {
           arrowLine(svg, prevX, prevY, currentX, currentY - 10);
-        }else if(currentNode.status === STATUS.false) {
-          // todo: 画折线
-          arrowLine(svg, prevX+12, prevY, currentX-30, currentY);
+        } else if (currentNode.status === STATUS.false) {
+          arrowLine(svg, prevX + 12, prevY, currentX - 30, currentY);
         }
         // 右偏移量与当前逻辑F节点的x坐标对比，谁大用谁
         if (offsetRightMaxX < x_f) {
@@ -220,9 +224,9 @@ class IndexSvg extends Component {
         const right = data.find(item => item.id === currentNode.nextRightNode);
         if (right) {
           // 迭代右子树
-          if(right.type === TYPE.rhombus) {
+          if (right.type === TYPE.rhombus) {
             _innerRecursion(right, offsetRightMaxX + horizontalSpacing, y_f, x_f, y_f);
-          }else if(right.type === TYPE.finish) {
+          } else if (right.type === TYPE.finish) {
             _innerRecursion(right, offsetRightMaxX + horizontalSpacing, y_t + verticalSpacing, x_f, y_f);
           }
         }
@@ -255,12 +259,12 @@ class IndexSvg extends Component {
         <div
           style={{
             position: "relative",
-            width: 1200,
-            height: 800,
+            width: 2200,
+            height: 3800,
             border: "1px solid #dfdfdf",
             margin: "20px 0 0 20px",
           }}>
-          <svg id="svgId" width={1200} height={800} />
+          <svg id="svgId" width={2200} height={3800} />
         </div>
       </Fragment>
     );
