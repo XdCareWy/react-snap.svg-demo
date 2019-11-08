@@ -2,7 +2,13 @@ import React, { Component, Fragment } from "react";
 import "./index.css";
 import { TYPE, data_o, STATUS } from "./data1";
 import { NodeOperation } from "./basicGraph/NodeOperation";
-import { responseRectText, getResponseRectTextBox, paintRectText, arrowLine, brokenLineGraph } from "./basicGraph/index";
+import {
+  responseRectText,
+  getResponseRectTextBox,
+  paintRectText,
+  arrowLine,
+  brokenLineGraph,
+} from "./basicGraph/index";
 import { logicGraph, computeLogicPoint } from "./combinationGraph/index";
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
@@ -32,11 +38,12 @@ class IndexSvg extends Component {
   // 操作 - 添加结束单元
   handleAddFinish = (svg, e, label, node, trueOrFalse) => {
     const { data } = this.state;
+    const uuid = new Date().getTime();
     const finishNode = {
-      id: data.length + 1,
+      id: uuid,
       type: TYPE.finish,
       prevNode: node.id,
-      label: `finish哒哒哒哒哒哒多少时诵诗书所大所大所多多多多label,finish ${data.length + 1}`,
+      label: `finis所大所多多多多label,finish ${uuid}`,
       condition: "finish哒哒哒哒哒哒多多多多多",
       status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
     };
@@ -58,14 +65,15 @@ class IndexSvg extends Component {
   handleAddLogic = (svg, e, label, node, trueOrFalse) => {
     const { data } = this.state;
     // 新增节点
+    const uuid = new Date().getTime();
     const newNode = {
-      id: data.length + 1,
+      id: uuid,
       type: TYPE.rhombus,
       prevNode: node.id,
       nextLeftNode: undefined,
       nextRightNode: undefined,
       label: "xxxx",
-      condition: `xxxxx: ${data.length + 1}`,
+      condition: `xxxxx: ${uuid}`,
       status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
     };
     // 更改当前节点的nextLeftNode和nextRightNode
@@ -116,52 +124,59 @@ class IndexSvg extends Component {
     this.setState({ data: changeData });
   };
 
+  operationByType = type => {
+    const plusLogicNode = {
+      label: "+",
+      clickFn: this.handleAddLogic,
+      attr: {
+        circleStroke: "#38649E",
+        circleFill: "#E6F1FD",
+        textFill: "#336CA8",
+      },
+    };
+    const plusFinishNode = {
+      label: "E",
+      clickFn: this.handleAddFinish,
+      attr: {
+        circleStroke: "#38649E",
+        circleFill: "#E6F1FD",
+        textFill: "#336CA8",
+      },
+    };
+    const deleteNode = {
+      label: "-",
+      clickFn: this.handleDelete,
+      attr: {
+        circleStroke: "#920000",
+        circleFill: "#FCDBE0",
+        textFill: "#C71723",
+      },
+    };
+    const cancel = {
+      label: "C",
+      clickFn: function(svg, e, label) {
+        console.log(label);
+        const r = svg.select("#operationId");
+        r.remove();
+      },
+      attr: {
+        circleStroke: "red",
+        circleFill: "#FCDBE0",
+        textFill: "#C71723",
+      },
+    };
+    const typeMap = {
+      [TYPE.start]: [plusFinishNode, cancel, plusLogicNode],
+      [TYPE.rhombus]: [plusLogicNode, cancel, plusFinishNode, deleteNode],
+      [TYPE.finish]: [deleteNode, cancel],
+    };
+    return typeMap[type];
+  };
+
   renderSvg = data => {
     const svg = Snap("#svgId");
     svg.clear();
-    const operationObj = [
-      {
-        label: "+",
-        clickFn: this.handleAddLogic,
-        attr: {
-          circleStroke: "#38649E",
-          circleFill: "#E6F1FD",
-          textFill: "#336CA8",
-        },
-      },
-      {
-        label: "-",
-        clickFn: this.handleDelete,
-        attr: {
-          circleStroke: "#920000",
-          circleFill: "#FCDBE0",
-          textFill: "#C71723",
-        },
-      },
-      {
-        label: "E",
-        clickFn: this.handleAddFinish,
-        attr: {
-          circleStroke: "#38649E",
-          circleFill: "#E6F1FD",
-          textFill: "#336CA8",
-        },
-      },
-      {
-        label: "C",
-        clickFn: function(svg, e, label) {
-          console.log(label);
-          const r = svg.select("#operationId");
-          r.remove();
-        },
-        attr: {
-          circleStroke: "red",
-          circleFill: "#FCDBE0",
-          textFill: "#C71723",
-        },
-      },
-    ];
-    this.recursionPaint(svg, data, operationObj);
+    this.recursionPaint(svg, data);
   };
 
   logicAndCircleTextGraph = (svg, x, y, currentNode, operationObj) => {
@@ -181,7 +196,7 @@ class IndexSvg extends Component {
     };
   };
 
-  recursionPaint = (svg, data, operationObj) => {
+  recursionPaint = (svg, data) => {
     let offsetRightMaxX = 0;
     // 内部递归函数
     const _innerRecursion = (currentNode, currentX, currentY, prevX, prevY) => {
@@ -190,23 +205,39 @@ class IndexSvg extends Component {
         const { width, height } = getResponseRectTextBox(svg, 0, 0, currentNode.label, finishMaxWidth);
         let finishX = currentX - width / 2 - 50 + 10;
         let finishY = currentY - height / 2 - 20 + verticalSpacing;
-        const {rectGroup} = responseRectText(svg, finishX, finishY, currentNode.label, finishMaxWidth, 0, "rgb(240,240,240)");
+        const { rectGroup } = responseRectText(
+          svg,
+          finishX,
+          finishY,
+          currentNode.label,
+          finishMaxWidth,
+          0,
+          "rgb(240,240,240)"
+        );
+        // 绑定事件
+        rectGroup.click(() => {
+          const { x, y, width, height } = rectGroup.getBBox();
+          NodeOperation(svg, x + width / 2, y + height / 2, 65, this.operationByType(currentNode.type), "finish", currentNode, 20);
+        });
         if (currentNode.status === STATUS.true) {
-          arrowLine(svg, prevX, prevY, prevX, finishY - height / 2 + 17);
+          arrowLine(svg, prevX, prevY, prevX, finishY-23);
         } else if (currentNode.status === STATUS.false) {
-          // todo: 画折线
-          // brokenLineGraph(svg, prevX+12,prevY,currentX-30,currentY)
-          const {cx,cy,height} = rectGroup.getBBox();
-          brokenLineGraph(svg, prevX+12, prevY, cx, cy-height/2);
+          const { cx, cy, height } = rectGroup.getBBox();
+          brokenLineGraph(svg, prevX + 12, prevY, cx, cy - height / 2);
         }
         // 记录当前向右偏移量
-        if(offsetRightMaxX < currentX + width / 2) {
+        if (offsetRightMaxX < currentX + width / 2) {
           offsetRightMaxX = currentX + width / 2;
         }
-        console.log(`${currentNode.id} ---- ${offsetRightMaxX}`);
       } else if (currentNode.type === TYPE.rhombus) {
         // 绘制逻辑单元
-        const { x_t, y_t, x_f, y_f } = this.logicAndCircleTextGraph(svg, currentX, currentY, currentNode, operationObj);
+        const { x_t, y_t, x_f, y_f } = this.logicAndCircleTextGraph(
+          svg,
+          currentX,
+          currentY,
+          currentNode,
+          this.operationByType(currentNode.type)
+        );
         if (currentNode.status === STATUS.true) {
           arrowLine(svg, prevX, prevY, currentX, currentY - 10);
         } else if (currentNode.status === STATUS.false) {
@@ -243,7 +274,7 @@ class IndexSvg extends Component {
     // 绑定事件
     rectStart.click(() => {
       const { x, y, width, height } = rectStart.getBBox();
-      NodeOperation(svg, x + width / 2, y + height / 2, 50, operationObj, "开始", start);
+      NodeOperation(svg, x + width / 2, y + height / 2, 50, this.operationByType(start.type), "开始", start);
     });
     // 开始节点之后的第一个节点
     const first = data.find(item => item.id === start.nextLeftNode);

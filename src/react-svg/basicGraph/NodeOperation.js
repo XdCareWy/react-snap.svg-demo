@@ -7,10 +7,11 @@
  * @param operationObj 分布在r上的小圆圈操作
  * @param text 中心位置小圈里的文本
  * @param node 当前节点的基本信息
+ * @param centerRadius 中心点的半径，默认15
  * @returns {React.ReactSVGElement | never}
  * @constructor
  */
-export function NodeOperation(svg, x, y, r, operationObj, text, node) {
+export function NodeOperation(svg, x, y, r, operationObj, text, node, centerRadius=15) {
   const operationE = svg.select("#operationId");
   operationE && operationE.remove();
   // 外围大圈
@@ -21,7 +22,7 @@ export function NodeOperation(svg, x, y, r, operationObj, text, node) {
     stroke: "gray",
   });
   // 中心位置的小圈
-  const centerG = paintRoundText(svg, x, y, 15, text);
+  const centerG = paintRoundText(svg, x, y, centerRadius, text);
   const deg = (2 * Math.PI) / operationObj.length;
   const oo = [];
   // 所有大圈周围的小圈
