@@ -70,10 +70,11 @@ export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetC
   falseE.click(() => {
     const isDisabled = node.nextRightNode === undefined;
     const res = operationObj.map(item => {
-      if (["+", "E"].includes(item.label)) {
+      if (["+", "E","S"].includes(item.label)) {
         return {
           ...item,
           attr: !isDisabled ? disabledAttr : item.attr,
+          className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
         };
       }
       return item;
@@ -85,10 +86,11 @@ export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetC
   trueE.click(() => {
     const isDisabled = node.nextLeftNode === undefined;
     const res = operationObj.map(item => {
-      if (["+", "E"].includes(item.label)) {
+      if (["+", "E","S"].includes(item.label)) {
         return {
           ...item,
           attr: !isDisabled ? disabledAttr : item.attr,
+          className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
         };
       }
       return item;

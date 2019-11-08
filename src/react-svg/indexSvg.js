@@ -1,4 +1,6 @@
 import React, { Component, Fragment } from "react";
+import { Modal, message, Input } from "antd";
+import "antd/dist/antd.css";
 import "./index.css";
 import { TYPE, data_o, STATUS } from "./data1";
 import { NodeOperation } from "./basicGraph/NodeOperation";
@@ -22,6 +24,7 @@ class IndexSvg extends Component {
     super(props);
     this.state = {
       data: data_o,
+      visible: false,
     };
   }
 
@@ -37,57 +40,67 @@ class IndexSvg extends Component {
 
   // 操作 - 添加结束单元
   handleAddFinish = (svg, e, label, node, trueOrFalse) => {
-    const { data } = this.state;
-    const uuid = new Date().getTime();
-    const finishNode = {
-      id: uuid,
-      type: TYPE.finish,
-      prevNode: node.id,
-      label: `finis所大所多多多多label,finish ${uuid}`,
-      condition: "finish哒哒哒哒哒哒多多多多多",
-      status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
-    };
-    // 更改当前节点的nextLeftNode和nextRightNode
-    const changeData = data.map(item => {
-      if (item.id === node.id) {
-        return {
-          ...item,
-          nextLeftNode: trueOrFalse === "F" ? item.nextLeftNode : finishNode.id,
-          nextRightNode: trueOrFalse === "F" ? finishNode.id : item.nextRightNode,
-        };
-      }
-      return item;
-    });
-    this.setState({ data: [...changeData, finishNode] });
+    if (!node.condition) {
+      message.destroy();
+      message.warn("请先配置该逻辑单元");
+    } else {
+      const { data } = this.state;
+      const uuid = new Date().getTime();
+      const finishNode = {
+        id: uuid,
+        type: TYPE.finish,
+        prevNode: node.id,
+        label: `finis所大所多多多多label,finish ${uuid}`,
+        condition: "finish哒哒哒哒哒哒多多多多多",
+        status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
+      };
+      // 更改当前节点的nextLeftNode和nextRightNode
+      const changeData = data.map(item => {
+        if (item.id === node.id) {
+          return {
+            ...item,
+            nextLeftNode: trueOrFalse === "F" ? item.nextLeftNode : finishNode.id,
+            nextRightNode: trueOrFalse === "F" ? finishNode.id : item.nextRightNode,
+          };
+        }
+        return item;
+      });
+      this.setState({ data: [...changeData, finishNode] });
+    }
   };
 
   // 操作 - 添加逻辑单元
   handleAddLogic = (svg, e, label, node, trueOrFalse) => {
-    const { data } = this.state;
-    // 新增节点
-    const uuid = new Date().getTime();
-    const newNode = {
-      id: uuid,
-      type: TYPE.rhombus,
-      prevNode: node.id,
-      nextLeftNode: undefined,
-      nextRightNode: undefined,
-      label: "xxxx",
-      // condition: `xxxxx: ${uuid}`,
-      status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
-    };
-    // 更改当前节点的nextLeftNode和nextRightNode
-    const changeData = data.map(item => {
-      if (item.id === node.id) {
-        return {
-          ...item,
-          nextLeftNode: trueOrFalse === "F" ? item.nextLeftNode : newNode.id,
-          nextRightNode: trueOrFalse === "F" ? newNode.id : item.nextRightNode,
-        };
-      }
-      return item;
-    });
-    this.setState({ data: [...changeData, newNode] });
+    if (!node.condition) {
+      message.destroy();
+      message.warn("请先配置该逻辑单元");
+    } else {
+      const { data } = this.state;
+      // 新增节点
+      const uuid = new Date().getTime();
+      const newNode = {
+        id: uuid,
+        type: TYPE.rhombus,
+        prevNode: node.id,
+        nextLeftNode: undefined,
+        nextRightNode: undefined,
+        label: "xxxx",
+        // condition: `xxxxx: ${uuid}`,
+        status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
+      };
+      // 更改当前节点的nextLeftNode和nextRightNode
+      const changeData = data.map(item => {
+        if (item.id === node.id) {
+          return {
+            ...item,
+            nextLeftNode: trueOrFalse === "F" ? item.nextLeftNode : newNode.id,
+            nextRightNode: trueOrFalse === "F" ? newNode.id : item.nextRightNode,
+          };
+        }
+        return item;
+      });
+      this.setState({ data: [...changeData, newNode] });
+    }
   };
 
   // 获取要删除的所有id
@@ -106,25 +119,36 @@ class IndexSvg extends Component {
 
   // 操作 - 删除逻辑单元
   handleDelete = (svg, e, label, node) => {
-    const { data } = this.state;
-    const deleteIds = this.getDeleteIds(node, data);
-    const prevNode = data.find(item => item.id === node.prevNode);
-    // 过滤该节点，以及所有子孙节点
-    let changeData = data.filter(item => !deleteIds.includes(item.id));
-    // 对该节点的父节点的指向进行重置
-    changeData = changeData.map(item => {
-      if(item.id === prevNode.id) {
-        const left = changeData.find(item => item.id === prevNode.nextLeftNode) || {};
-        const right = changeData.find(item => item.id === prevNode.nextRightNode) || {};
-        return {
-          ...item,
-          nextLeftNode: left.id,
-          nextRightNode: right.id
-        }
-      }
-      return item;
+    Modal.confirm({
+      title: "删除",
+      content: "删除该节点及其所有子孙节点，确定删除吗？",
+      onOk: () => {
+        const { data } = this.state;
+        const deleteIds = this.getDeleteIds(node, data);
+        const prevNode = data.find(item => item.id === node.prevNode);
+        // 过滤该节点，以及所有子孙节点
+        let changeData = data.filter(item => !deleteIds.includes(item.id));
+        // 对该节点的父节点的指向进行重置
+        changeData = changeData.map(item => {
+          if (item.id === prevNode.id) {
+            const left = changeData.find(item => item.id === prevNode.nextLeftNode) || {};
+            const right = changeData.find(item => item.id === prevNode.nextRightNode) || {};
+            return {
+              ...item,
+              nextLeftNode: left.id,
+              nextRightNode: right.id,
+            };
+          }
+          return item;
+        });
+        this.setState({ data: changeData });
+      },
     });
-    this.setState({ data: changeData });
+  };
+
+  handleConfigLogic = (svg, e, label, node, trueOrFalse) => {
+    console.log("as");
+    this.setState({ visible: true, currentLogicNode: node });
   };
 
   operationByType = (type, isDisabled) => {
@@ -132,6 +156,18 @@ class IndexSvg extends Component {
       circleStroke: "#d9d9d9",
       circleFill: "#f5f5f5",
       textFill: "rgba(0,0,0,0.25)",
+    };
+    const configLogicNode = {
+      label: "S",
+      clickFn: this.handleConfigLogic,
+      attr: !isDisabled
+        ? disabledAttr
+        : {
+            circleStroke: "#38649E",
+            circleFill: "#E6F1FD",
+            textFill: "#336CA8",
+          },
+      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const plusLogicNode = {
       label: "+",
@@ -181,8 +217,8 @@ class IndexSvg extends Component {
     };
     const typeMap = {
       [TYPE.start]: [plusFinishNode, cancel, plusLogicNode],
-      [TYPE.rhombus]: [plusLogicNode, cancel, plusFinishNode, deleteNode],
-      [TYPE.finish]: [deleteNode, cancel],
+      [TYPE.rhombus]: [plusLogicNode, cancel, plusFinishNode, configLogicNode, deleteNode],
+      [TYPE.finish]: [deleteNode,configLogicNode, cancel],
     };
     return typeMap[type];
   };
@@ -318,6 +354,7 @@ class IndexSvg extends Component {
 
   render() {
     console.log(this.state.data);
+    const { visible } = this.state;
     return (
       <Fragment>
         <div
@@ -330,6 +367,33 @@ class IndexSvg extends Component {
           }}>
           <svg id="svgId" width={2200} height={3800} />
         </div>
+        <Modal
+          title={"配置逻辑"}
+          visible={visible}
+          onCancel={() => this.setState({ visible: false })}
+          onOk={() => {
+            const {data, currentLogicNode, inputValue} = this.state;
+            const changeData = data.map(item => {
+              if(item.id === currentLogicNode.id && currentLogicNode.type === TYPE.rhombus) {
+                return {
+                  ...item,
+                  condition: inputValue
+                }
+              }
+              if(item.id === currentLogicNode.id && currentLogicNode.type === TYPE.finish) {
+                return {
+                  ...item,
+                  label: inputValue
+                }
+              }
+              return item;
+            });
+
+            this.setState({ visible: false, data: changeData });
+          }}>
+          使用输入框模拟配置
+          <Input onChange={(e) => this.setState({inputValue: e.target.value})}/>
+        </Modal>
       </Fragment>
     );
   }
