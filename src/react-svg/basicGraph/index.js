@@ -215,7 +215,7 @@ export const getResponseRectTextBox = (svg, x, y, text, lineMaxWidth = 100, dash
  * @param fill 矩形内颜色，默认 transparent（透明）
  * @returns {{rectGroup: React.ReactSVGElement | never, textGroup: React.ReactSVGElement | never}}
  */
-export const responseRectText = (svg, x, y, text, lineMaxWidth = 100, dasharray = 3, fill = "transparent") => {
+export const responseRectText = (svg, x, y, text="请配置该逻辑单元", lineMaxWidth = 100, dasharray = 3, fill = "transparent") => {
   if (!text) throw new Error("text is not exist");
   const words = text.split("").reverse();
   let line = [];

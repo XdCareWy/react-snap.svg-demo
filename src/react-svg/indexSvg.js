@@ -73,7 +73,7 @@ class IndexSvg extends Component {
       nextLeftNode: undefined,
       nextRightNode: undefined,
       label: "xxxx",
-      condition: `xxxxx: ${uuid}`,
+      // condition: `xxxxx: ${uuid}`,
       status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
     };
     // 更改当前节点的nextLeftNode和nextRightNode
@@ -105,43 +105,57 @@ class IndexSvg extends Component {
   };
 
   // 操作 - 删除逻辑单元
-  handleDelete = (svg, e, label, node, trueOrFalse) => {
+  handleDelete = (svg, e, label, node) => {
     const { data } = this.state;
     const deleteIds = this.getDeleteIds(node, data);
     const prevNode = data.find(item => item.id === node.prevNode);
-    let changeData = data.map(item => {
-      if (item.id === prevNode.id) {
+    // 过滤该节点，以及所有子孙节点
+    let changeData = data.filter(item => !deleteIds.includes(item.id));
+    // 对该节点的父节点的指向进行重置
+    changeData = changeData.map(item => {
+      if(item.id === prevNode.id) {
+        const left = changeData.find(item => item.id === prevNode.nextLeftNode) || {};
+        const right = changeData.find(item => item.id === prevNode.nextRightNode) || {};
         return {
           ...item,
-          nextLeftNode: trueOrFalse === "F" ? undefined : item.nextLeftNode,
-          nextRightNode: trueOrFalse === "T" ? undefined : item.nextRightNode,
-        };
+          nextLeftNode: left.id,
+          nextRightNode: right.id
+        }
       }
       return item;
     });
-
-    changeData = changeData.filter(item => !deleteIds.includes(item.id));
     this.setState({ data: changeData });
   };
 
-  operationByType = type => {
+  operationByType = (type, isDisabled) => {
+    const disabledAttr = {
+      circleStroke: "#d9d9d9",
+      circleFill: "#f5f5f5",
+      textFill: "rgba(0,0,0,0.25)",
+    };
     const plusLogicNode = {
       label: "+",
       clickFn: this.handleAddLogic,
-      attr: {
-        circleStroke: "#38649E",
-        circleFill: "#E6F1FD",
-        textFill: "#336CA8",
-      },
+      attr: !isDisabled
+        ? disabledAttr
+        : {
+            circleStroke: "#38649E",
+            circleFill: "#E6F1FD",
+            textFill: "#336CA8",
+          },
+      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const plusFinishNode = {
       label: "E",
       clickFn: this.handleAddFinish,
-      attr: {
-        circleStroke: "#38649E",
-        circleFill: "#E6F1FD",
-        textFill: "#336CA8",
-      },
+      attr: !isDisabled
+        ? disabledAttr
+        : {
+            circleStroke: "#38649E",
+            circleFill: "#E6F1FD",
+            textFill: "#336CA8",
+          },
+      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const deleteNode = {
       label: "-",
@@ -217,10 +231,20 @@ class IndexSvg extends Component {
         // 绑定事件
         rectGroup.click(() => {
           const { x, y, width, height } = rectGroup.getBBox();
-          NodeOperation(svg, x + width / 2, y + height / 2, 65, this.operationByType(currentNode.type), "finish", currentNode, 20);
+          const isDisabled = currentNode.nextLeftNode === undefined;
+          NodeOperation(
+            svg,
+            x + width / 2,
+            y + height / 2,
+            65,
+            this.operationByType(currentNode.type, isDisabled),
+            "finish",
+            currentNode,
+            20
+          );
         });
         if (currentNode.status === STATUS.true) {
-          arrowLine(svg, prevX, prevY, prevX, finishY-23);
+          arrowLine(svg, prevX, prevY, prevX, finishY - 23);
         } else if (currentNode.status === STATUS.false) {
           const { cx, cy, height } = rectGroup.getBBox();
           brokenLineGraph(svg, prevX + 12, prevY, cx, cy - height / 2);
@@ -236,7 +260,7 @@ class IndexSvg extends Component {
           currentX,
           currentY,
           currentNode,
-          this.operationByType(currentNode.type)
+          this.operationByType(currentNode.type, true)
         );
         if (currentNode.status === STATUS.true) {
           arrowLine(svg, prevX, prevY, currentX, currentY - 10);
@@ -274,7 +298,16 @@ class IndexSvg extends Component {
     // 绑定事件
     rectStart.click(() => {
       const { x, y, width, height } = rectStart.getBBox();
-      NodeOperation(svg, x + width / 2, y + height / 2, 50, this.operationByType(start.type), "开始", start);
+      const isDisabled = start.nextLeftNode === undefined;
+      NodeOperation(
+        svg,
+        x + width / 2,
+        y + height / 2,
+        50,
+        this.operationByType(start.type, isDisabled),
+        "开始",
+        start
+      );
     });
     // 开始节点之后的第一个节点
     const first = data.find(item => item.id === start.nextLeftNode);

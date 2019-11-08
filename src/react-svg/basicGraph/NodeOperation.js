@@ -11,7 +11,7 @@
  * @returns {React.ReactSVGElement | never}
  * @constructor
  */
-export function NodeOperation(svg, x, y, r, operationObj, text, node, centerRadius=15) {
+export function NodeOperation(svg, x, y, r, operationObj, text, node, centerRadius = 15) {
   const operationE = svg.select("#operationId");
   operationE && operationE.remove();
   // 外围大圈
@@ -31,6 +31,7 @@ export function NodeOperation(svg, x, y, r, operationObj, text, node, centerRadi
       label,
       clickFn,
       attr: { circleFill, circleStroke, textFill },
+      className="cursor-pointer"
     } = operationObj[i];
     const tmpE = paintCircleText(svg, x + Math.cos(deg * i) * r, y - Math.sin(deg * i) * r, 12, label);
     tmpE.select("circle").attr({
@@ -41,6 +42,7 @@ export function NodeOperation(svg, x, y, r, operationObj, text, node, centerRadi
     tmpE.click(() => {
       clickFn(svg, centerG, label, node, text);
     });
+    tmpE.attr({class:className})
     oo.push(tmpE);
   }
   const g = svg.g(circleE, centerG, ...oo);

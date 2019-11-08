@@ -161,7 +161,7 @@ const data = [
 
 const data_o = [
   { id: 1, type: 1, nextLeftNode: 2, label: "开始", condition: "", x: 75, y: 65, status: 0 },
-  { id: 2, type: 3, prevNode: 1,nextLeftNode:undefined, nextRightNode: undefined, label: "京腾支付价", condition: "JDPrice in api.price && JTPrice > 1000JDPrice in api.price && JTPrice > 1000JDPrice in api.price && JTPrice > 1000", status: 1 },
+  { id: 2, type: 3, prevNode: 1,nextLeftNode:undefined, nextRightNode: undefined, label: "京腾支付价",  status: 1 },
   // {
   //   id: 3,
   //   type: 3,

@@ -1,3 +1,11 @@
 .cursor-pointer {
   cursor: pointer;
 }
+.cursor-not-allowed {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.disabled-svg {
+  pointer-events: none;
+}

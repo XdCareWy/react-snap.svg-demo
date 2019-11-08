@@ -48,6 +48,11 @@ export const computeLogicPoint = (x, y, offsetCenterY = 50) => {
  * @returns {React.ReactSVGElement | never}
  */
 export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetCenterY) => {
+  const disabledAttr = {
+    circleStroke: "#d9d9d9",
+    circleFill: "#f5f5f5",
+    textFill: "rgba(0,0,0,0.25)",
+  };
   const { x_f, y_f, x_c, y_c, x_t, y_t } = computeLogicPoint(x, y, offsetCenterY);
   // 1. 菱形 - 连接点 的line
   const rhombusToCenterLine = lineGraph(svg, x, y, x_c, y_c);
@@ -63,12 +68,32 @@ export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetC
   // 4. 画F
   const falseE = circleGraph(svg, x_f, y_f, 12, "F");
   falseE.click(() => {
-    NodeOperation(svg, x_f, y_f, 50, operationObj, "F", node);
+    const isDisabled = node.nextRightNode === undefined;
+    const res = operationObj.map(item => {
+      if (["+", "E"].includes(item.label)) {
+        return {
+          ...item,
+          attr: !isDisabled ? disabledAttr : item.attr,
+        };
+      }
+      return item;
+    });
+    NodeOperation(svg, x_f, y_f, 50, res, "F", node);
   });
   // 5. 画T
   const trueE = circleGraph(svg, x_t, y_t, 12, "T");
   trueE.click(() => {
-    NodeOperation(svg, x_t, y_t, 50, operationObj, "T", node);
+    const isDisabled = node.nextLeftNode === undefined;
+    const res = operationObj.map(item => {
+      if (["+", "E"].includes(item.label)) {
+        return {
+          ...item,
+          attr: !isDisabled ? disabledAttr : item.attr,
+        };
+      }
+      return item;
+    });
+    NodeOperation(svg, x_t, y_t, 50, res, "T", node);
   });
   // 6. 画折线
   // lineGraph(svg, x_f, y_f, x_f + 100, y_f);
