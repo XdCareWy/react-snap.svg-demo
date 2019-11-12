@@ -3,6 +3,50 @@ import treeData from "./data";
 import { circleGraph, lineGraph } from "../basicGraph";
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
+const LOGIC_TYPE = {
+  and: 1,
+  or: 2,
+  none: 3,
+};
+const d = [
+  {
+    id: 1,
+    type: LOGIC_TYPE.and,
+    label: "&&",
+    parentId: undefined,
+  },
+  {
+    id: 2,
+    type: LOGIC_TYPE.or,
+    label: "||",
+    parentId: 1,
+  },
+  {
+    id: 3,
+    type: LOGIC_TYPE.none,
+    label: "A1",
+    parentId: 2,
+  },
+  {
+    id: 4,
+    type: LOGIC_TYPE.none,
+    label: "A2",
+    parentId: 2,
+  },
+  {
+    id: 5,
+    type: LOGIC_TYPE.none,
+    label: "B1",
+    parentId: 1,
+  },
+  {
+    id: 6,
+    type: LOGIC_TYPE.none,
+    label: "B2",
+    parentId: 1,
+  },
+];
+
 class LogicConfig extends Component {
   constructor(props) {
     super(props);
@@ -14,22 +58,62 @@ class LogicConfig extends Component {
   componentDidMount() {
     const svg = Snap("#svgId");
     svg.clear();
-    const { treeData } = this.state;
-    const copyTreeData = JSON.parse(JSON.stringify(treeData));
+    // const { treeData } = this.state;
+    const treeData = this.transformD(d)
+    console.log(treeData)
+    const copyTreeData = treeData;
     LogicConfig.transformTree(copyTreeData);
     LogicConfig.computeTreeDistance(copyTreeData);
     LogicConfig.loopLine(svg, copyTreeData);
-    LogicConfig.loopRound(svg, copyTreeData);
+    this.loopRound(svg, copyTreeData);
   }
 
-  static loopRound(svg, data) {
+  transformD = (data) => {
+    const _fn = function(parentId) {
+      const list = [];
+      for(let node of data) {
+        if(node.parentId === parentId) {
+          const o = {
+            id: node.id,
+            type: node.type,
+            label: node.label,
+            parentId: node.parentId,
+          };
+          o.children = _fn(node.id);
+          list.push(o)
+        }
+      }
+      return list;
+    };
+    return _fn(void 0)
+  };
+
+  handleAdd = node => {
+    console.log(node);
+    const { treeData } = this.state;
+    const cloneData = JSON.parse(JSON.stringify(treeData));
+    console.log(cloneData);
+    const _fn = function(data, id) {
+      if (data.id === id) {
+        console.log(data.children[0]);
+      } else {
+        data.children.length && _fn(data.children[0]);
+      }
+    };
+    _fn(cloneData[0], node.id);
+  };
+
+  loopRound(svg, data) {
     // 画节点
     for (let i = 0; i < data.length; i++) {
       const mid = data[i];
 
-      circleGraph(svg, mid.x, mid.y, 10, mid.label);
+      const circleElement = circleGraph(svg, mid.x, mid.y, 10, mid.label);
+      circleElement.click(() => {
+        this.handleAdd(mid);
+      });
       if (mid.children.length) {
-        LogicConfig.loopRound(svg, mid.children);
+        this.loopRound(svg, mid.children);
       }
     }
   }
