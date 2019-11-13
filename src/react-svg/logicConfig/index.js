@@ -96,8 +96,42 @@ class LogicConfig extends Component {
     return _fn(void 0);
   };
 
+  handleDelete = (svg, centerG, label, node) => {
+    const { treeData } = this.state;
+    if(node.parentId === void 0) {
+      // 如果是根节点，清空数组
+      this.setState({treeData: []});
+    }else {
+      // 1. 获取当前节点的父节点
+      const parentNode = treeData.find(item => item.id === node.parentId);
+      // 2. 过滤节点id或节点parentId为当前删除节点id的节点，即删除当前节点及其子孙节点
+      let changeData = treeData.filter(item => !(item.id === node.id || item.parentId === node.id));
+      // 3. 获取删除节点的兄弟节点
+      const childNode = changeData.filter(item => item.parentId === parentNode.id);
+      // 4. 如果其兄弟节点个数小于等于1，其兄弟节点应重新指向其爷爷节点
+      if(childNode.length <= 1) {
+        // 4.1 获取兄弟节点
+        const onlyChild = childNode[0];
+        // 4.2 找到爷爷节点
+        const grandpa = changeData.find(item => item.id === parentNode.parentId) || {};
+        // 4.3 将爷爷节点的id给其兄弟节点
+        changeData = changeData.map(item => {
+          if(item.id === onlyChild.id) {
+            return {
+              ...item,
+              parentId: grandpa.id
+            }
+          }
+          return item;
+        });
+        // 4.4 过滤掉父节点
+        changeData = changeData.filter(item => item.id !== parentNode.id);
+      }
+      this.setState({treeData: changeData})
+    }
+  };
+
   handleAdd = (svg, centerG, label, node) => {
-    console.log(label);
     let { treeData } = this.state;
     const parentNode = treeData.find(item => item.id === node.parentId) || {};
     const labelType = {
@@ -186,9 +220,7 @@ class LogicConfig extends Component {
     };
     const deleteNode = {
       label: "-",
-      clickFn: function(svg, e, label) {
-        console.log(label);
-      },
+      clickFn: this.handleDelete,
       attr: {
         circleStroke: "#920000",
         circleFill: "#FCDBE0",
@@ -209,7 +241,7 @@ class LogicConfig extends Component {
       },
     };
     const typeMap = {
-      [LOGIC_TYPE.and]: [cancel, plusLogicOr, plusLogicAnd],
+      [LOGIC_TYPE.and]: [cancel, plusLogicOr, plusLogicAnd, deleteNode],
       [LOGIC_TYPE.or]: [plusLogicOr, cancel, deleteNode, plusLogicAnd],
       [LOGIC_TYPE.none]: [deleteNode, configLogicNode, cancel, plusLogicOr, plusLogicAnd],
     };
