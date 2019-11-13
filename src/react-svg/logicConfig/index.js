@@ -1,6 +1,7 @@
-import React, { Component, Fragment } from "react";
-import treeData from "./data";
+import React, { Component } from "react";
+// import treeData from "./data";
 import { circleGraph, lineGraph } from "../basicGraph";
+import { NodeOperation } from "../basicGraph/NodeOperation";
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
 const LOGIC_TYPE = {
@@ -51,28 +52,35 @@ class LogicConfig extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      treeData: treeData,
+      treeData: d,
     };
   }
 
   componentDidMount() {
+    const { treeData } = this.state;
+    this.renderLogic(treeData);
+  }
+
+  componentWillUpdate(nextProps, nextState, nextContext) {
+    const { treeData } = nextState;
+    this.renderLogic(treeData);
+  }
+
+  renderLogic(treeData) {
     const svg = Snap("#svgId");
     svg.clear();
-    // const { treeData } = this.state;
-    const treeData = this.transformD(d)
-    console.log(treeData)
-    const copyTreeData = treeData;
+    const copyTreeData = this.transformDataToTree(treeData);
     LogicConfig.transformTree(copyTreeData);
     LogicConfig.computeTreeDistance(copyTreeData);
     LogicConfig.loopLine(svg, copyTreeData);
     this.loopRound(svg, copyTreeData);
   }
 
-  transformD = (data) => {
+  transformDataToTree = data => {
     const _fn = function(parentId) {
       const list = [];
-      for(let node of data) {
-        if(node.parentId === parentId) {
+      for (let node of data) {
+        if (node.parentId === parentId) {
           const o = {
             id: node.id,
             type: node.type,
@@ -80,27 +88,132 @@ class LogicConfig extends Component {
             parentId: node.parentId,
           };
           o.children = _fn(node.id);
-          list.push(o)
+          list.push(o);
         }
       }
       return list;
     };
-    return _fn(void 0)
+    return _fn(void 0);
   };
 
-  handleAdd = node => {
-    console.log(node);
-    const { treeData } = this.state;
-    const cloneData = JSON.parse(JSON.stringify(treeData));
-    console.log(cloneData);
-    const _fn = function(data, id) {
-      if (data.id === id) {
-        console.log(data.children[0]);
-      } else {
-        data.children.length && _fn(data.children[0]);
-      }
+  handleAdd = (svg, centerG, label, node) => {
+    console.log(label);
+    let { treeData } = this.state;
+    const parentNode = treeData.find(item => item.id === node.parentId) || {};
+    const labelType = {
+      "||": LOGIC_TYPE.or,
+      "&&": LOGIC_TYPE.and,
     };
-    _fn(cloneData[0], node.id);
+    // 如果添加的操作，与当前节点或者当前节点的父节点一样，直接push一个新的节点，并改变其parentId
+    if (labelType[label] === node.type || labelType[label] === parentNode.type) {
+      let parentId = labelType[label] === parentNode.type ? parentNode.id : node.id;
+      treeData.push({
+        id: treeData.length + 1,
+        type: LOGIC_TYPE.none,
+        label: treeData.length + 1,
+        parentId: parentId,
+      });
+    } else {
+      const orId = treeData.length + 1;
+      treeData.push({
+        id: orId,
+        type: labelType[label],
+        label: label,
+        parentId: parentNode.id,
+      });
+      treeData.push({
+        id: treeData.length + 1,
+        type: LOGIC_TYPE.none,
+        label: treeData.length + 1,
+        parentId: orId,
+      });
+      treeData = treeData.map(item => {
+        if (item.id === node.id) {
+          return {
+            ...item,
+            parentId: orId,
+          };
+        }
+        return item;
+      });
+    }
+    this.setState({ treeData: treeData });
+  };
+
+  operationByType = (type, isDisabled) => {
+    const disabledAttr = {
+      circleStroke: "#d9d9d9",
+      circleFill: "#f5f5f5",
+      textFill: "rgba(0,0,0,0.25)",
+    };
+    const configLogicNode = {
+      label: "S",
+      clickFn: function(svg, e, label) {
+        console.log(label);
+      },
+      attr: !isDisabled
+        ? disabledAttr
+        : {
+            circleStroke: "#38649E",
+            circleFill: "#E6F1FD",
+            textFill: "#336CA8",
+          },
+      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
+    };
+    const plusLogicOr = {
+      label: "||",
+      clickFn: this.handleAdd,
+      attr: !isDisabled
+        ? disabledAttr
+        : {
+            circleStroke: "#38649E",
+            circleFill: "#E6F1FD",
+            textFill: "#336CA8",
+          },
+      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
+    };
+    const plusLogicAnd = {
+      label: "&&",
+      clickFn: this.handleAdd,
+      attr: !isDisabled
+        ? disabledAttr
+        : {
+            circleStroke: "#38649E",
+            circleFill: "#E6F1FD",
+            textFill: "#336CA8",
+          },
+      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
+    };
+    const deleteNode = {
+      label: "-",
+      clickFn: function(svg, e, label) {
+        console.log(label);
+      },
+      attr: {
+        circleStroke: "#920000",
+        circleFill: "#FCDBE0",
+        textFill: "#C71723",
+      },
+    };
+    const cancel = {
+      label: "C",
+      clickFn: function(svg, e, label) {
+        console.log(label);
+        const r = svg.select("#operationId");
+        r.remove();
+      },
+      attr: {
+        circleStroke: "red",
+        circleFill: "#FCDBE0",
+        textFill: "#C71723",
+      },
+    };
+    const typeMap = {
+      [LOGIC_TYPE.and]: [cancel, plusLogicOr, plusLogicAnd],
+      [LOGIC_TYPE.or]: [plusLogicOr, cancel, deleteNode, plusLogicAnd],
+      [LOGIC_TYPE.none]: [deleteNode, configLogicNode, cancel, plusLogicOr, plusLogicAnd],
+    };
+    return typeMap[type];
   };
 
   loopRound(svg, data) {
@@ -110,7 +223,8 @@ class LogicConfig extends Component {
 
       const circleElement = circleGraph(svg, mid.x, mid.y, 10, mid.label);
       circleElement.click(() => {
-        this.handleAdd(mid);
+        // this.handleAdd(mid);
+        NodeOperation(svg, mid.x, mid.y, 35, this.operationByType(mid.type, true), "", mid, 10);
       });
       if (mid.children.length) {
         this.loopRound(svg, mid.children);
@@ -163,7 +277,7 @@ class LogicConfig extends Component {
    * @param offsetY 整棵树在y坐标的偏移量
    * @param offsetX 整棵树在x坐标的偏移量
    */
-  static computeTreeDistance(data, XGap = 50, yGap = 50, offsetY = -10, offsetX = 0) {
+  static computeTreeDistance(data, XGap = 60, yGap = 70, offsetY = -10, offsetX = 0) {
     for (let node of data) {
       node.y = node.floor * yGap + offsetY;
       node.x = node.childNodeCount * XGap * 0.5 + node.floorNumber * XGap + offsetX;
@@ -173,22 +287,6 @@ class LogicConfig extends Component {
     }
   }
 
-  /**
-   * 平铺整棵树
-   * @param treeData
-   * @param flatRes
-   * @returns {Array}
-   */
-  static flatTree(treeData, flatRes = []) {
-    for (let node of treeData) {
-      const { children: subNode, ...other } = node;
-      flatRes.push(other);
-      if (subNode.length) {
-        LogicConfig.flatTree(subNode, flatRes);
-      }
-    }
-    return flatRes;
-  }
   render() {
     return (
       <div
