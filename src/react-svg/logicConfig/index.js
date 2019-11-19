@@ -3,6 +3,7 @@ import React, { Component } from "react";
 import { circleGraph, lineGraph } from "../basicGraph";
 import { NodeOperation } from "../basicGraph/NodeOperation";
 import { Modal } from "antd";
+import LogicUnit from "./LogicUnit";
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
 const LOGIC_TYPE = {
@@ -54,6 +55,7 @@ class LogicConfig extends Component {
     super(props);
     this.state = {
       treeData: d,
+      visible: false,
     };
   }
 
@@ -100,6 +102,7 @@ class LogicConfig extends Component {
             type: node.type,
             label: node.label,
             parentId: node.parentId,
+            unitValue: node.unitValue
           };
           o.children = _fn(node.id);
           list.push(o);
@@ -203,8 +206,9 @@ class LogicConfig extends Component {
     };
     const configLogicNode = {
       label: "S",
-      clickFn: function(svg, e, label) {
+      clickFn: (svg, e, label, node) => {
         console.log(label);
+        this.setState({ visible: true, currentData: node });
       },
       attr: !isDisabled
         ? disabledAttr
@@ -358,7 +362,7 @@ class LogicConfig extends Component {
   }
 
   render() {
-    const { width, height } = this.state;
+    const { width, height, visible, currentData } = this.state;
     return (
       <div
         style={{
@@ -370,6 +374,28 @@ class LogicConfig extends Component {
           overflow: "auto",
         }}>
         <svg id="svgId" width={width} height={height} />
+        {visible && (
+          <LogicUnit
+            value={currentData}
+            visible={visible}
+            onCancel={() => this.setState({ visible: false })}
+            onOk={v => {
+              const {treeData} = this.state;
+              console.log(treeData);
+              console.log(v);
+              const changeData = treeData.map(item => {
+                if(item.id === v.id) {
+                  return {
+                    ...item,
+                    unitValue: v.unitValue
+                  }
+                }
+                return item;
+              });
+              this.setState({treeData: changeData, visible: false})
+            }}
+          />
+        )}
       </div>
     );
   }
