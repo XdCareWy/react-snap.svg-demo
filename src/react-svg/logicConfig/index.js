@@ -2,6 +2,7 @@ import React, { Component } from "react";
 // import treeData from "./data";
 import { circleGraph, lineGraph } from "../basicGraph";
 import { NodeOperation } from "../basicGraph/NodeOperation";
+import { Modal } from "antd";
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
 const LOGIC_TYPE = {
@@ -56,27 +57,40 @@ class LogicConfig extends Component {
     };
   }
 
-  componentDidMount() {
-    const { treeData } = this.state;
-    this.renderLogic(treeData);
+  static getDerivedStateFromProps(props, state) {
+    const { treeData } = state;
+    const copyTreeData = LogicConfig.transformDataToTree(treeData);
+    LogicConfig.transformTree(copyTreeData);
+    LogicConfig.computeTreeDistance(copyTreeData);
+    const flatTree = LogicConfig.flatTree(copyTreeData);
+    const canvasW = copyTreeData[0].childNodeCount * 70;
+    const canvasH = Math.max.apply(Math, flatTree.map(item => item.floor)) * 90;
+    return {
+      ...state,
+      width: canvasW,
+      height: canvasH,
+      transformTreeData: copyTreeData,
+    };
   }
 
-  componentWillUpdate(nextProps, nextState, nextContext) {
-    const { treeData } = nextState;
-    this.renderLogic(treeData);
+  componentDidMount() {
+    const { transformTreeData } = this.state;
+    this.renderLogic(transformTreeData);
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const { transformTreeData } = this.state;
+    this.renderLogic(transformTreeData);
   }
 
   renderLogic(treeData) {
     const svg = Snap("#svgId");
     svg.clear();
-    const copyTreeData = this.transformDataToTree(treeData);
-    LogicConfig.transformTree(copyTreeData);
-    LogicConfig.computeTreeDistance(copyTreeData);
-    LogicConfig.loopLine(svg, copyTreeData);
-    this.loopRound(svg, copyTreeData);
+    LogicConfig.loopLine(svg, treeData);
+    this.loopRound(svg, treeData);
   }
 
-  transformDataToTree = data => {
+  static transformDataToTree = data => {
     const _fn = function(parentId) {
       const list = [];
       for (let node of data) {
@@ -97,38 +111,45 @@ class LogicConfig extends Component {
   };
 
   handleDelete = (svg, centerG, label, node) => {
-    const { treeData } = this.state;
-    if(node.parentId === void 0) {
-      // 如果是根节点，清空数组
-      this.setState({treeData: []});
-    }else {
-      // 1. 获取当前节点的父节点
-      const parentNode = treeData.find(item => item.id === node.parentId);
-      // 2. 过滤节点id或节点parentId为当前删除节点id的节点，即删除当前节点及其子孙节点
-      let changeData = treeData.filter(item => !(item.id === node.id || item.parentId === node.id));
-      // 3. 获取删除节点的兄弟节点
-      const childNode = changeData.filter(item => item.parentId === parentNode.id);
-      // 4. 如果其兄弟节点个数小于等于1，其兄弟节点应重新指向其爷爷节点
-      if(childNode.length <= 1) {
-        // 4.1 获取兄弟节点
-        const onlyChild = childNode[0];
-        // 4.2 找到爷爷节点
-        const grandpa = changeData.find(item => item.id === parentNode.parentId) || {};
-        // 4.3 将爷爷节点的id给其兄弟节点
-        changeData = changeData.map(item => {
-          if(item.id === onlyChild.id) {
-            return {
-              ...item,
-              parentId: grandpa.id
-            }
+    Modal.confirm({
+      title: "确定删除？",
+      okText: "确定",
+      cancelText: "取消",
+      onOk: () => {
+        const { treeData } = this.state;
+        if (node.parentId === void 0) {
+          // 如果是根节点，清空数组
+          this.setState({ treeData: [] });
+        } else {
+          // 1. 获取当前节点的父节点
+          const parentNode = treeData.find(item => item.id === node.parentId);
+          // 2. 过滤节点id或节点parentId为当前删除节点id的节点，即删除当前节点及其子孙节点
+          let changeData = treeData.filter(item => !(item.id === node.id || item.parentId === node.id));
+          // 3. 获取删除节点的兄弟节点
+          const childNode = changeData.filter(item => item.parentId === parentNode.id);
+          // 4. 如果其兄弟节点个数小于等于1，其兄弟节点应重新指向其爷爷节点
+          if (childNode.length <= 1) {
+            // 4.1 获取兄弟节点
+            const onlyChild = childNode[0];
+            // 4.2 找到爷爷节点
+            const grandpa = changeData.find(item => item.id === parentNode.parentId) || {};
+            // 4.3 将爷爷节点的id给其兄弟节点
+            changeData = changeData.map(item => {
+              if (item.id === onlyChild.id) {
+                return {
+                  ...item,
+                  parentId: grandpa.id,
+                };
+              }
+              return item;
+            });
+            // 4.4 过滤掉父节点
+            changeData = changeData.filter(item => item.id !== parentNode.id);
           }
-          return item;
-        });
-        // 4.4 过滤掉父节点
-        changeData = changeData.filter(item => item.id !== parentNode.id);
-      }
-      this.setState({treeData: changeData})
-    }
+          this.setState({ treeData: changeData });
+        }
+      },
+    });
   };
 
   handleAdd = (svg, centerG, label, node) => {
@@ -319,17 +340,36 @@ class LogicConfig extends Component {
     }
   }
 
+  /**
+   * 平铺整棵树
+   * @param treeData
+   * @param flatRes
+   * @returns {Array}
+   */
+  static flatTree(treeData, flatRes = []) {
+    for (let node of treeData) {
+      const { children: subNode, ...other } = node;
+      flatRes.push(other);
+      if (subNode.length) {
+        LogicConfig.flatTree(subNode, flatRes);
+      }
+    }
+    return flatRes;
+  }
+
   render() {
+    const { width, height } = this.state;
     return (
       <div
         style={{
           position: "relative",
-          width: 2200,
-          height: 3800,
+          width: 900,
+          height: 600,
           border: "1px solid #dfdfdf",
           margin: "20px 0 0 20px",
+          overflow: "auto",
         }}>
-        <svg id="svgId" width={2200} height={3800} />
+        <svg id="svgId" width={width} height={height} />
       </div>
     );
   }
