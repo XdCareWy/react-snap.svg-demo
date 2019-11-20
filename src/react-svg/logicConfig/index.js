@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 // import treeData from "./data";
-import { circleGraph, lineGraph } from "../basicGraph";
+import { circleGraph, lineGraph, getResponseRectTextBox, responseRectText } from "../basicGraph";
 import { NodeOperation } from "../basicGraph/NodeOperation";
 import { Modal } from "antd";
 import LogicUnit from "./LogicUnit";
@@ -29,24 +29,28 @@ const d = [
     type: LOGIC_TYPE.none,
     label: "A1",
     parentId: 2,
+    tips: "JDPrice >= 1000",
   },
   {
     id: 4,
     type: LOGIC_TYPE.none,
     label: "A2",
     parentId: 2,
+    tips: "Jxiang >= 200",
   },
   {
     id: 5,
     type: LOGIC_TYPE.none,
     label: "B1",
     parentId: 1,
+    tips: "api.Jxiang >= 1000",
   },
   {
     id: 6,
     type: LOGIC_TYPE.none,
     label: "B2",
     parentId: 1,
+    tips: "api.JDPrice >= 1000",
   },
 ];
 
@@ -65,8 +69,8 @@ class LogicConfig extends Component {
     LogicConfig.transformTree(copyTreeData);
     LogicConfig.computeTreeDistance(copyTreeData);
     const flatTree = LogicConfig.flatTree(copyTreeData);
-    const canvasW = copyTreeData[0].childNodeCount * 150;
-    const canvasH = Math.max.apply(Math, flatTree.map(item => item.floor)) * 90;
+    const canvasW = copyTreeData[0].childNodeCount * 200;
+    const canvasH = Math.max.apply(Math, flatTree.map(item => item.floor)) * 120;
     return {
       ...state,
       width: canvasW,
@@ -102,7 +106,8 @@ class LogicConfig extends Component {
             type: node.type,
             label: node.label,
             parentId: node.parentId,
-            unitValue: node.unitValue
+            tips: node.tips,
+            unitValue: node.unitValue,
           };
           o.children = _fn(node.id);
           list.push(o);
@@ -282,7 +287,10 @@ class LogicConfig extends Component {
     // 画节点
     for (let i = 0; i < data.length; i++) {
       const mid = data[i];
-
+      if (mid.type === LOGIC_TYPE.none) {
+        const { width } = getResponseRectTextBox(svg, 0, 0, mid.tips, 100);
+        responseRectText(svg, mid.x - width + 15, mid.y + 35, mid.tips, 100, 0);
+      }
       const circleElement = circleGraph(svg, mid.x, mid.y, 10, mid.label);
       circleElement.click(() => {
         // this.handleAdd(mid);
@@ -339,7 +347,7 @@ class LogicConfig extends Component {
    * @param offsetY 整棵树在y坐标的偏移量
    * @param offsetX 整棵树在x坐标的偏移量
    */
-  static computeTreeDistance(data, XGap = 100, yGap = 70, offsetY = -10, offsetX = 90) {
+  static computeTreeDistance(data, XGap = 140, yGap = 70, offsetY = -10, offsetX = 90) {
     for (let node of data) {
       node.y = node.floor * yGap + offsetY;
       node.x = node.childNodeCount * XGap * 0.5 + node.floorNumber * XGap + offsetX;
@@ -366,8 +374,30 @@ class LogicConfig extends Component {
     return flatRes;
   }
 
+  getResult = (data, parentType) => {
+    const dd = {
+      [LOGIC_TYPE.or]: "||",
+      [LOGIC_TYPE.and]: "&&",
+    };
+    const arr = [];
+    for (let i = 0; i < data.children.length; i++) {
+      const child = data.children[i];
+      if (child.type === LOGIC_TYPE.none) {
+        arr.push(child.tips);
+      }
+      if (child.type === LOGIC_TYPE.or || child.type === LOGIC_TYPE.and) {
+        arr.push(this.getResult(child, data.type));
+      }
+    }
+    if (data.type === parentType) {
+      return arr.join(` ${dd[data.type]} `);
+    } else {
+      return `(${arr.join(` ${dd[data.type]} `)})`;
+    }
+  };
+
   render() {
-    const { width, height, visible, currentData } = this.state;
+    const { width, height, visible, currentData, transformTreeData } = this.state;
     return (
       <div
         style={{
@@ -379,25 +409,33 @@ class LogicConfig extends Component {
           overflow: "auto",
         }}>
         <svg id="svgId" width={width} height={height} />
+        <div
+          style={{
+            position: "absolute",
+            top: 10,
+            left: 20,
+          }}>
+          {`完整的表达式：${this.getResult(transformTreeData[0], transformTreeData[0].type)}`}
+        </div>
         {visible && (
           <LogicUnit
             value={currentData}
             visible={visible}
             onCancel={() => this.setState({ visible: false })}
             onOk={v => {
-              const {treeData} = this.state;
+              const { treeData } = this.state;
               console.log(treeData);
               console.log(v);
               const changeData = treeData.map(item => {
-                if(item.id === v.id) {
+                if (item.id === v.id) {
                   return {
                     ...item,
-                    unitValue: v.unitValue
-                  }
+                    unitValue: v.unitValue,
+                  };
                 }
                 return item;
               });
-              this.setState({treeData: changeData, visible: false})
+              this.setState({ treeData: changeData, visible: false });
             }}
           />
         )}
