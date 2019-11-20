@@ -27,7 +27,6 @@ export const rhombusGraph = (svg, x = 0, y = 0, strokeColor = "gray", width = 60
   return svg
     .polyline([x - width / 2, y, x, y - height / 2, x + width / 2, y, x, y + height / 2, x - width / 2, y])
     .attr({
-      class: "cursor-pointer",
       fill: "#FEFEFE",
       stroke: strokeColor,
       "stroke-width": 2,
@@ -132,7 +131,7 @@ export const brokenLineGraph = (svg, fromX, fromY, toX, toY, color="#8F8F8F") =>
  * @param text 文本
  * @returns {{width: number, height: number}} 返回文本的宽、高
  */
-const getTextNodeBox = (svg, text) => {
+export const getTextNodeBox = (svg, text) => {
   if (!text) throw new Error("text is not exist");
   let textWidth, textHeight;
   const textNode = svg.text(0, 0, text).attr({ "font-size": 12 });
@@ -151,11 +150,12 @@ const getTextNodeBox = (svg, text) => {
  * @param x 文本的x坐标
  * @param y 文本的y坐标
  * @param text 文本
+ * @param fill 文本填充颜色
  * @returns 文本图形
  */
-const textGraph = (svg, x, y, text) => {
+export const textGraph = (svg, x, y, text, fill) => {
   if (!text) throw new Error("text is not exist");
-  return svg.text(x, y, text).attr({ "font-size": 12 });
+  return svg.text(x, y, text).attr({ "font-size": 12, fill: fill });
 };
 
 /**

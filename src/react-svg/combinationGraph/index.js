@@ -66,11 +66,11 @@ export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetC
   // 3. 画连接点
   const centerE = circleGraph(svg, x_c, y_c, 5);
   // 4. 画F
-  const falseE = circleGraph(svg, x_f, y_f, 12, "F");
+  const falseE = circleGraph(svg, x_f, y_f, 12, "F").attr({ class: "cursor-pointer" });
   falseE.click(() => {
     const isDisabled = node.nextRightNode === undefined;
     const res = operationObj.map(item => {
-      if (["+", "E","S"].includes(item.label)) {
+      if (["+", "E", "S"].includes(item.label)) {
         return {
           ...item,
           attr: !isDisabled ? disabledAttr : item.attr,
@@ -82,11 +82,11 @@ export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetC
     NodeOperation(svg, x_f, y_f, 50, res, "F", node);
   });
   // 5. 画T
-  const trueE = circleGraph(svg, x_t, y_t, 12, "T");
+  const trueE = circleGraph(svg, x_t, y_t, 12, "T").attr({ class: "cursor-pointer" });
   trueE.click(() => {
     const isDisabled = node.nextLeftNode === undefined;
     const res = operationObj.map(item => {
-      if (["+", "E","S"].includes(item.label)) {
+      if (["+", "E", "S"].includes(item.label)) {
         return {
           ...item,
           attr: !isDisabled ? disabledAttr : item.attr,

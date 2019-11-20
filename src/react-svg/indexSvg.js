@@ -160,6 +160,7 @@ class IndexSvg extends Component {
     const configLogicNode = {
       label: "S",
       clickFn: this.handleConfigLogic,
+      titleTips: "配置",
       attr: !isDisabled
         ? disabledAttr
         : {
@@ -172,6 +173,7 @@ class IndexSvg extends Component {
     const plusLogicNode = {
       label: "+",
       clickFn: this.handleAddLogic,
+      titleTips: "新增逻辑节点",
       attr: !isDisabled
         ? disabledAttr
         : {
@@ -184,6 +186,7 @@ class IndexSvg extends Component {
     const plusFinishNode = {
       label: "E",
       clickFn: this.handleAddFinish,
+      titleTips: "新增完成节点",
       attr: !isDisabled
         ? disabledAttr
         : {
@@ -196,6 +199,7 @@ class IndexSvg extends Component {
     const deleteNode = {
       label: "-",
       clickFn: this.handleDelete,
+      titleTips: "删除节点",
       attr: {
         circleStroke: "#920000",
         circleFill: "#FCDBE0",
@@ -209,6 +213,7 @@ class IndexSvg extends Component {
         const r = svg.select("#operationId");
         r.remove();
       },
+      titleTips: "取消操作",
       attr: {
         circleStroke: "red",
         circleFill: "#FCDBE0",

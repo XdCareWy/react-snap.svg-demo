@@ -1,3 +1,5 @@
+import { getTextNodeBox, text, textGraph } from "./index";
+
 /**
  *
  * @param svg
@@ -31,9 +33,20 @@ export function NodeOperation(svg, x, y, r, operationObj, text, node, centerRadi
       label,
       clickFn,
       attr: { circleFill, circleStroke, textFill },
-      className="cursor-pointer"
+      className = "cursor-pointer",
+      titleTips,
     } = operationObj[i];
     const tmpE = paintCircleText(svg, x + Math.cos(deg * i) * r, y - Math.sin(deg * i) * r, 12, label);
+    // 操作按钮的 tips
+    const operationX = x + Math.cos(deg * i) * r; // 操作按钮当前的x坐标
+    const operationY = y - Math.sin(deg * i) * r; // 操作按钮当前的y坐标
+    let titleTipsE;
+    const { width: tmpWidth } = getTextNodeBox(svg, titleTips); // 计算tips的文本宽度
+    if (operationX >= x) {
+      titleTipsE = textGraph(svg, operationX + 15, operationY, titleTips, textFill);
+    } else {
+      titleTipsE = textGraph(svg, operationX - tmpWidth - 15, operationY, titleTips, textFill);
+    }
     tmpE.select("circle").attr({
       fill: circleFill,
       stroke: circleStroke,
@@ -42,8 +55,8 @@ export function NodeOperation(svg, x, y, r, operationObj, text, node, centerRadi
     tmpE.click(() => {
       clickFn(svg, centerG, label, node, text);
     });
-    tmpE.attr({class:className})
-    oo.push(tmpE);
+    tmpE.attr({ class: className });
+    oo.push(svg.g(tmpE, titleTipsE));
   }
   const g = svg.g(circleE, centerG, ...oo);
   g.attr({
