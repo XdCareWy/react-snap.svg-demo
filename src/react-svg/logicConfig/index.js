@@ -65,7 +65,7 @@ class LogicConfig extends Component {
     LogicConfig.transformTree(copyTreeData);
     LogicConfig.computeTreeDistance(copyTreeData);
     const flatTree = LogicConfig.flatTree(copyTreeData);
-    const canvasW = copyTreeData[0].childNodeCount * 70;
+    const canvasW = copyTreeData[0].childNodeCount * 150;
     const canvasH = Math.max.apply(Math, flatTree.map(item => item.floor)) * 90;
     return {
       ...state,
@@ -210,6 +210,7 @@ class LogicConfig extends Component {
         console.log(label);
         this.setState({ visible: true, currentData: node });
       },
+      titleTips: "配置表达式",
       attr: !isDisabled
         ? disabledAttr
         : {
@@ -222,6 +223,7 @@ class LogicConfig extends Component {
     const plusLogicOr = {
       label: "||",
       clickFn: this.handleAdd,
+      titleTips: "新增或节点",
       attr: !isDisabled
         ? disabledAttr
         : {
@@ -234,6 +236,7 @@ class LogicConfig extends Component {
     const plusLogicAnd = {
       label: "&&",
       clickFn: this.handleAdd,
+      titleTips: "新增与节点",
       attr: !isDisabled
         ? disabledAttr
         : {
@@ -246,6 +249,7 @@ class LogicConfig extends Component {
     const deleteNode = {
       label: "-",
       clickFn: this.handleDelete,
+      titleTips: "删除节点",
       attr: {
         circleStroke: "#920000",
         circleFill: "#FCDBE0",
@@ -259,6 +263,7 @@ class LogicConfig extends Component {
         const r = svg.select("#operationId");
         r.remove();
       },
+      titleTips: "取消",
       attr: {
         circleStroke: "red",
         circleFill: "#FCDBE0",
@@ -334,7 +339,7 @@ class LogicConfig extends Component {
    * @param offsetY 整棵树在y坐标的偏移量
    * @param offsetX 整棵树在x坐标的偏移量
    */
-  static computeTreeDistance(data, XGap = 60, yGap = 70, offsetY = -10, offsetX = 0) {
+  static computeTreeDistance(data, XGap = 100, yGap = 70, offsetY = -10, offsetX = 90) {
     for (let node of data) {
       node.y = node.floor * yGap + offsetY;
       node.x = node.childNodeCount * XGap * 0.5 + node.floorNumber * XGap + offsetX;

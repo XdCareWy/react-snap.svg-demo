@@ -146,7 +146,7 @@ class IndexSvg extends Component {
     });
   };
 
-  handleConfigLogic = (svg, e, label, node, trueOrFalse) => {
+  handleConfigLogic = (svg, e, label, node) => {
     console.log("as");
     this.setState({ visible: true, currentLogicNode: node });
   };
@@ -160,7 +160,7 @@ class IndexSvg extends Component {
     const configLogicNode = {
       label: "S",
       clickFn: this.handleConfigLogic,
-      titleTips: "配置",
+      titleTips: "配置逻辑单元",
       attr: !isDisabled
         ? disabledAttr
         : {

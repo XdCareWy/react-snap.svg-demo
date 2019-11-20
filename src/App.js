@@ -13,8 +13,8 @@ function App() {
   return (
     <div className="App">
       {/*<UseStateDemo />*/}
-      {/*<LogicConfig></LogicConfig>*/}
-      <Svg />
+      <LogicConfig></LogicConfig>
+      {/*<Svg />*/}
       {/*<CanvasDemo></CanvasDemo>*/}
       {/*<ErrorBoundary>*/}
       {/*  <ErrorDemo />*/}
