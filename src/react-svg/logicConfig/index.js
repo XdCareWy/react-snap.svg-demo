@@ -430,6 +430,7 @@ class LogicConfig extends Component {
                 if (item.id === v.id) {
                   return {
                     ...item,
+                    tips: v.tips,
                     unitValue: v.unitValue,
                   };
                 }
