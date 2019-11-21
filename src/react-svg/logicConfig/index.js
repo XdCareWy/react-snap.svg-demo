@@ -52,7 +52,7 @@ class LogicConfig extends Component {
   }
 
   renderLogic(treeData) {
-    const svg = Snap("#svgId");
+    const svg = Snap("#svgLogicId");
     svg.clear();
     LogicConfig.loopLine(svg, treeData);
     this.loopRound(svg, treeData);
@@ -375,16 +375,8 @@ class LogicConfig extends Component {
   render() {
     const { width, height, visible, currentData, transformTreeData } = this.state;
     return (
-      <div
-        style={{
-          position: "relative",
-          width: 900,
-          height: 600,
-          border: "1px solid #dfdfdf",
-          margin: "20px 0 0 20px",
-          overflow: "auto",
-        }}>
-        <svg id="svgId" width={width < 350 ? 350 : width} height={height < 260 ? 260 : height}/>
+      <React.Fragment>
+        <svg id="svgLogicId" width={width < 350 ? 350 : width} height={height < 260 ? 260 : height}/>
         <div
           style={{
             position: "absolute",
@@ -416,7 +408,7 @@ class LogicConfig extends Component {
             }}
           />
         )}
-      </div>
+      </React.Fragment>
     );
   }
 }

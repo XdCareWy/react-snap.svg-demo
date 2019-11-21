@@ -12,6 +12,7 @@ import {
   brokenLineGraph,
 } from "./basicGraph/index";
 import { logicGraph, computeLogicPoint } from "./combinationGraph/index";
+import LogicConfig from "./logicConfig/index"
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
@@ -373,6 +374,7 @@ class IndexSvg extends Component {
           <svg id="svgId" width={2200} height={3800} />
         </div>
         <Modal
+          width={800}
           title={"配置逻辑"}
           visible={visible}
           onCancel={() => this.setState({ visible: false })}
@@ -398,6 +400,16 @@ class IndexSvg extends Component {
           }}>
           使用输入框模拟配置
           <Input onChange={(e) => this.setState({inputValue: e.target.value})}/>
+          <div
+            style={{
+              position: "relative",
+              width: "100%",
+              height: 600,
+              border: "1px solid #dfdfdf",
+              overflow: "auto",
+            }}>
+            <LogicConfig />
+          </div>
         </Modal>
       </Fragment>
     );
