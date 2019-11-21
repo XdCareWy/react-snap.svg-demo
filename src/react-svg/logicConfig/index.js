@@ -1,9 +1,9 @@
 import React, { Component } from "react";
-// import treeData from "./data";
 import { circleGraph, lineGraph, getResponseRectTextBox, responseRectText } from "../basicGraph";
 import { NodeOperation } from "../basicGraph/NodeOperation";
-import { Modal } from "antd";
+import { Modal, message } from "antd";
 import LogicUnit from "./LogicUnit";
+
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
 const LOGIC_TYPE = {
@@ -11,54 +11,16 @@ const LOGIC_TYPE = {
   or: 2,
   none: 3,
 };
-const d = [
-  {
-    id: 1,
-    type: LOGIC_TYPE.and,
-    label: "&&",
-    parentId: undefined,
-  },
-  {
-    id: 2,
-    type: LOGIC_TYPE.or,
-    label: "||",
-    parentId: 1,
-  },
-  {
-    id: 3,
-    type: LOGIC_TYPE.none,
-    label: "A1",
-    parentId: 2,
-    tips: "JDPrice >= 1000",
-  },
-  {
-    id: 4,
-    type: LOGIC_TYPE.none,
-    label: "A2",
-    parentId: 2,
-    tips: "Jxiang >= 200",
-  },
-  {
-    id: 5,
-    type: LOGIC_TYPE.none,
-    label: "B1",
-    parentId: 1,
-    tips: "api.Jxiang >= 1000",
-  },
-  {
-    id: 6,
-    type: LOGIC_TYPE.none,
-    label: "B2",
-    parentId: 1,
-    tips: "api.JDPrice >= 1000",
-  },
-];
 
 class LogicConfig extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      treeData: d,
+      treeData: [{
+        id: 1,
+        type: LOGIC_TYPE.none,
+        parentId: undefined,
+      }],
       visible: false,
     };
   }
@@ -125,9 +87,20 @@ class LogicConfig extends Component {
       cancelText: "取消",
       onOk: () => {
         const { treeData } = this.state;
+        if (treeData.length === 1) {
+          message.destroy();
+          message.warn("一个节点无法删除！");
+          return;
+        }
         if (node.parentId === void 0) {
           // 如果是根节点，清空数组
-          this.setState({ treeData: [] });
+          this.setState({
+            treeData: [{
+              id: 1,
+              type: LOGIC_TYPE.none,
+              parentId: undefined,
+            }],
+          });
         } else {
           // 1. 获取当前节点的父节点
           const parentNode = treeData.find(item => item.id === node.parentId);
@@ -216,14 +189,12 @@ class LogicConfig extends Component {
         this.setState({ visible: true, currentData: node });
       },
       titleTips: "配置表达式",
-      attr: !isDisabled
-        ? disabledAttr
-        : {
-            circleStroke: "#38649E",
-            circleFill: "#E6F1FD",
-            textFill: "#336CA8",
-          },
-      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
+      attr: {
+        circleStroke: "#38649E",
+        circleFill: "#E6F1FD",
+        textFill: "#336CA8",
+      },
+      className: "cursor-pointer",
     };
     const plusLogicOr = {
       label: "||",
@@ -232,10 +203,10 @@ class LogicConfig extends Component {
       attr: !isDisabled
         ? disabledAttr
         : {
-            circleStroke: "#38649E",
-            circleFill: "#E6F1FD",
-            textFill: "#336CA8",
-          },
+          circleStroke: "#38649E",
+          circleFill: "#E6F1FD",
+          textFill: "#336CA8",
+        },
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const plusLogicAnd = {
@@ -245,10 +216,10 @@ class LogicConfig extends Component {
       attr: !isDisabled
         ? disabledAttr
         : {
-            circleStroke: "#38649E",
-            circleFill: "#E6F1FD",
-            textFill: "#336CA8",
-          },
+          circleStroke: "#38649E",
+          circleFill: "#E6F1FD",
+          textFill: "#336CA8",
+        },
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const deleteNode = {
@@ -291,16 +262,21 @@ class LogicConfig extends Component {
         const { width } = getResponseRectTextBox(svg, 0, 0, mid.tips, 100);
         responseRectText(svg, mid.x - width + 15, mid.y + 35, mid.tips, 100, 0);
       }
-      const circleElement = circleGraph(svg, mid.x, mid.y, 10, mid.label);
+      const circleElement = circleGraph(svg, mid.x, mid.y, 10, mid.type === LOGIC_TYPE.none ? "" : mid.label);
       circleElement.click(() => {
         // this.handleAdd(mid);
-        NodeOperation(svg, mid.x, mid.y, 35, this.operationByType(mid.type, true), "", mid, 10);
+        let isDisabled = !!mid.tips;
+        if (mid.type !== LOGIC_TYPE.none) {
+          isDisabled = true;
+        }
+        NodeOperation(svg, mid.x, mid.y, 35, this.operationByType(mid.type, isDisabled), "", mid, 10);
       });
       if (mid.children.length) {
         this.loopRound(svg, mid.children);
       }
     }
   }
+
   static loopLine(svg, data) {
     // 画直线
     for (let node of data) {
@@ -408,7 +384,7 @@ class LogicConfig extends Component {
           margin: "20px 0 0 20px",
           overflow: "auto",
         }}>
-        <svg id="svgId" width={width} height={height} />
+        <svg id="svgId" width={width < 350 ? 350 : width} height={height < 260 ? 260 : height}/>
         <div
           style={{
             position: "absolute",
