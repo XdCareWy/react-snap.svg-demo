@@ -12,7 +12,7 @@ import {
   brokenLineGraph,
 } from "./basicGraph/index";
 import { logicGraph, computeLogicPoint } from "./combinationGraph/index";
-import LogicConfig from "./logicConfig/index"
+import LogicConfig from "./logicConfig/index";
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
@@ -26,6 +26,8 @@ class IndexSvg extends Component {
     this.state = {
       data: data_o,
       visible: false,
+      currentLogicNode: {},
+      childContext: null,
     };
   }
 
@@ -148,7 +150,6 @@ class IndexSvg extends Component {
   };
 
   handleConfigLogic = (svg, e, label, node) => {
-    console.log("as");
     this.setState({ visible: true, currentLogicNode: node });
   };
 
@@ -210,7 +211,6 @@ class IndexSvg extends Component {
     const cancel = {
       label: "C",
       clickFn: function(svg, e, label) {
-        console.log(label);
         const r = svg.select("#operationId");
         r.remove();
       },
@@ -224,7 +224,7 @@ class IndexSvg extends Component {
     const typeMap = {
       [TYPE.start]: [plusFinishNode, cancel, plusLogicNode],
       [TYPE.rhombus]: [plusLogicNode, cancel, plusFinishNode, configLogicNode, deleteNode],
-      [TYPE.finish]: [deleteNode,configLogicNode, cancel],
+      [TYPE.finish]: [deleteNode, configLogicNode, cancel],
     };
     return typeMap[type];
   };
@@ -359,8 +359,7 @@ class IndexSvg extends Component {
   };
 
   render() {
-    console.log(this.state.data);
-    const { visible } = this.state;
+    const { visible, currentLogicNode } = this.state;
     return (
       <Fragment>
         <div
@@ -373,44 +372,53 @@ class IndexSvg extends Component {
           }}>
           <svg id="svgId" width={2200} height={3800} />
         </div>
-        <Modal
-          width={800}
-          title={"配置逻辑"}
-          visible={visible}
-          onCancel={() => this.setState({ visible: false })}
-          onOk={() => {
-            const {data, currentLogicNode, inputValue} = this.state;
-            const changeData = data.map(item => {
-              if(item.id === currentLogicNode.id && currentLogicNode.type === TYPE.rhombus) {
-                return {
-                  ...item,
-                  condition: inputValue
+        {visible && (
+          <Modal
+            width={800}
+            title={"配置逻辑"}
+            visible={visible}
+            onCancel={() => this.setState({ visible: false })}
+            onOk={() => {
+              const { data, currentLogicNode, inputValue, childContext } = this.state;
+              const changeData = data.map(item => {
+                if (item.id === currentLogicNode.id && currentLogicNode.type === TYPE.rhombus) {
+                  const { logicUnitData, expressStr } = childContext.getAllResult();
+                  return {
+                    ...item,
+                    condition: expressStr,
+                    logicUnitData: logicUnitData,
+                  };
                 }
-              }
-              if(item.id === currentLogicNode.id && currentLogicNode.type === TYPE.finish) {
-                return {
-                  ...item,
-                  label: inputValue
+                if (item.id === currentLogicNode.id && currentLogicNode.type === TYPE.finish) {
+                  return {
+                    ...item,
+                    label: inputValue,
+                  };
                 }
-              }
-              return item;
-            });
-
-            this.setState({ visible: false, data: changeData });
-          }}>
-          使用输入框模拟配置
-          <Input onChange={(e) => this.setState({inputValue: e.target.value})}/>
-          <div
-            style={{
-              position: "relative",
-              width: "100%",
-              height: 600,
-              border: "1px solid #dfdfdf",
-              overflow: "auto",
+                return item;
+              });
+              this.setState({ visible: false, data: changeData });
             }}>
-            <LogicConfig />
-          </div>
-        </Modal>
+            {currentLogicNode.type === TYPE.finish && (
+              <Fragment>
+                使用输入框模拟配置
+                <Input onChange={e => this.setState({ inputValue: e.target.value })} />
+              </Fragment>
+            )}
+            {currentLogicNode.type === TYPE.rhombus && (
+              <div
+                style={{
+                  position: "relative",
+                  width: "100%",
+                  height: 600,
+                  border: "1px solid #dfdfdf",
+                  overflow: "auto",
+                }}>
+                <LogicConfig getChild={context => this.setState({ childContext: context })} />
+              </div>
+            )}
+          </Modal>
+        )}
       </Fragment>
     );
   }

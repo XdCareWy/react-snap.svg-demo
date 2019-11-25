@@ -16,11 +16,13 @@ class LogicConfig extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      treeData: [{
-        id: 1,
-        type: LOGIC_TYPE.none,
-        parentId: undefined,
-      }],
+      treeData: [
+        {
+          id: 1,
+          type: LOGIC_TYPE.none,
+          parentId: undefined,
+        },
+      ],
       visible: false,
     };
   }
@@ -42,6 +44,8 @@ class LogicConfig extends Component {
   }
 
   componentDidMount() {
+    const { getChild } = this.props;
+    getChild && getChild(this);
     const { transformTreeData } = this.state;
     this.renderLogic(transformTreeData);
   }
@@ -95,11 +99,13 @@ class LogicConfig extends Component {
         if (node.parentId === void 0) {
           // 如果是根节点，清空数组
           this.setState({
-            treeData: [{
-              id: 1,
-              type: LOGIC_TYPE.none,
-              parentId: undefined,
-            }],
+            treeData: [
+              {
+                id: 1,
+                type: LOGIC_TYPE.none,
+                parentId: undefined,
+              },
+            ],
           });
         } else {
           // 1. 获取当前节点的父节点
@@ -185,7 +191,6 @@ class LogicConfig extends Component {
     const configLogicNode = {
       label: "S",
       clickFn: (svg, e, label, node) => {
-        console.log(label);
         this.setState({ visible: true, currentData: node });
       },
       titleTips: "配置表达式",
@@ -203,10 +208,10 @@ class LogicConfig extends Component {
       attr: !isDisabled
         ? disabledAttr
         : {
-          circleStroke: "#38649E",
-          circleFill: "#E6F1FD",
-          textFill: "#336CA8",
-        },
+            circleStroke: "#38649E",
+            circleFill: "#E6F1FD",
+            textFill: "#336CA8",
+          },
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const plusLogicAnd = {
@@ -216,10 +221,10 @@ class LogicConfig extends Component {
       attr: !isDisabled
         ? disabledAttr
         : {
-          circleStroke: "#38649E",
-          circleFill: "#E6F1FD",
-          textFill: "#336CA8",
-        },
+            circleStroke: "#38649E",
+            circleFill: "#E6F1FD",
+            textFill: "#336CA8",
+          },
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const deleteNode = {
@@ -235,7 +240,6 @@ class LogicConfig extends Component {
     const cancel = {
       label: "C",
       clickFn: function(svg, e, label) {
-        console.log(label);
         const r = svg.select("#operationId");
         r.remove();
       },
@@ -350,6 +354,15 @@ class LogicConfig extends Component {
     return flatRes;
   }
 
+  getAllResult = () => {
+    const { transformTreeData, treeData } = this.state;
+    const express = this.getResult(transformTreeData[0], transformTreeData[0].type);
+    return {
+      logicUnitData: treeData,
+      expressStr: express,
+    };
+  };
+
   getResult = (data, parentType) => {
     const dd = {
       [LOGIC_TYPE.or]: "||",
@@ -376,7 +389,7 @@ class LogicConfig extends Component {
     const { width, height, visible, currentData, transformTreeData } = this.state;
     return (
       <React.Fragment>
-        <svg id="svgLogicId" width={width < 350 ? 350 : width} height={height < 260 ? 260 : height}/>
+        <svg id="svgLogicId" width={width < 350 ? 350 : width} height={height < 260 ? 260 : height} />
         <div
           style={{
             position: "absolute",
@@ -392,8 +405,6 @@ class LogicConfig extends Component {
             onCancel={() => this.setState({ visible: false })}
             onOk={v => {
               const { treeData } = this.state;
-              console.log(treeData);
-              console.log(v);
               const changeData = treeData.map(item => {
                 if (item.id === v.id) {
                   return {
