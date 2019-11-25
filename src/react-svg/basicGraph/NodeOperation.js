@@ -1,4 +1,4 @@
-import { getTextNodeBox, text, textGraph } from "./index";
+import { getTextNodeBox, textGraph } from "./index";
 
 /**
  *
@@ -17,6 +17,11 @@ export function NodeOperation(svg, x, y, r, operationObj, text, node, centerRadi
   const operationE = svg.select("#operationId");
   operationE && operationE.remove();
   // 外围大圈
+  const circleE1 = svg.circle(x, y, 2.7 * r).attr({
+    fill: "rgba(255,255,255, 0.8)",
+    "stroke-width": 0,
+    "stroke-dasharray": 0,
+  });
   const circleE = svg.circle(x, y, r).attr({
     fill: "rgb(244,244,244)",
     "stroke-width": 1,
@@ -43,9 +48,15 @@ export function NodeOperation(svg, x, y, r, operationObj, text, node, centerRadi
     let titleTipsE;
     const { width: tmpWidth } = getTextNodeBox(svg, titleTips); // 计算tips的文本宽度
     if (operationX >= x) {
-      titleTipsE = textGraph(svg, operationX + 15, operationY, titleTips, textFill);
+      titleTipsE = textGraph(svg, operationX + 15, operationY, titleTips, textFill).attr({
+        "font-size": 12,
+        "font-weight": 700,
+      });
     } else {
-      titleTipsE = textGraph(svg, operationX - tmpWidth - 15, operationY, titleTips, textFill);
+      titleTipsE = textGraph(svg, operationX - tmpWidth - 15, operationY, titleTips, textFill).attr({
+        "font-size": 12,
+        "font-weight": 700,
+      });
     }
     tmpE.select("circle").attr({
       fill: circleFill,
@@ -58,7 +69,7 @@ export function NodeOperation(svg, x, y, r, operationObj, text, node, centerRadi
     tmpE.attr({ class: className });
     oo.push(svg.g(tmpE, titleTipsE));
   }
-  const g = svg.g(circleE, centerG, ...oo);
+  const g = svg.g(circleE1, circleE, centerG, ...oo);
   g.attr({
     id: "operationId",
   });
