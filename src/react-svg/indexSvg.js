@@ -1,5 +1,5 @@
 import React, { Component, Fragment } from "react";
-import { Modal, message, Input } from "antd";
+import { Modal, message, Input, Form } from "antd";
 import "antd/dist/antd.css";
 import "./index.css";
 import { TYPE, data_o, STATUS } from "./data1";
@@ -53,8 +53,8 @@ class IndexSvg extends Component {
         id: uuid,
         type: TYPE.finish,
         prevNode: node.id,
-        label: `finis所大所多多多多label,finish ${uuid}`,
-        condition: "finish哒哒哒哒哒哒多多多多多",
+        label: "请配置完成节点",
+        condition: "请配置完成节点",
         status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
       };
       // 更改当前节点的nextLeftNode和nextRightNode
@@ -268,7 +268,8 @@ class IndexSvg extends Component {
           currentNode.label,
           finishMaxWidth,
           0,
-          "rgb(240,240,240)"
+          "rgb(240,240,240)",
+          "red"
         );
         // 绑定事件
         rectGroup.click(() => {
@@ -286,7 +287,7 @@ class IndexSvg extends Component {
           );
         });
         if (currentNode.status === STATUS.true) {
-          arrowLine(svg, prevX, prevY, prevX, finishY - 23);
+          arrowLine(svg, prevX, prevY, prevX, finishY - 23, "red");
         } else if (currentNode.status === STATUS.false) {
           const { cx, cy, height } = rectGroup.getBBox();
           brokenLineGraph(svg, prevX + 12, prevY, cx, cy - height / 2);
@@ -305,7 +306,7 @@ class IndexSvg extends Component {
           this.operationByType(currentNode.type, true)
         );
         if (currentNode.status === STATUS.true) {
-          arrowLine(svg, prevX, prevY, currentX, currentY - 10);
+          arrowLine(svg, prevX, prevY, currentX, currentY - 10, "red");
         } else if (currentNode.status === STATUS.false) {
           arrowLine(svg, prevX + 12, prevY, currentX - 30, currentY);
         }
@@ -335,7 +336,7 @@ class IndexSvg extends Component {
     };
     const start = data.find(item => item.type === TYPE.start);
     // 1. 画开始节点
-    const rectStart = paintRectText(svg, start.x, start.y, start.label);
+    const rectStart = paintRectText(svg, start.x, start.y, start.label, "red");
     const { cx, cy, height } = rectStart.getBBox();
     // 绑定事件
     rectStart.click(() => {
@@ -358,10 +359,43 @@ class IndexSvg extends Component {
     }
   };
 
+  renderInput = (data) => {
+    return <div
+      style={{
+        border: "1px solid #dfdfdf",
+        margin: "20px 0 0 20px",
+      }}
+    >
+      <Form>
+        {data.map(item => {
+          if(item.type === TYPE.rhombus) {
+            const {logicUnitData=[]} = item;
+            return logicUnitData.map(i => {
+             if(i.type === 3) {
+               const { unitValue = {} } = i || {};
+               const { leftStyle, leftValue } = unitValue;
+               if(+leftStyle === 1) {
+                 return <Form.Item label={leftValue.join(".")}>
+                   <Input/>
+                 </Form.Item>
+               }
+             }
+            })
+
+          }
+        })}
+      </Form>
+    </div>
+  };
+
   render() {
-    const { visible, currentLogicNode } = this.state;
+    const { visible, currentLogicNode, data } = this.state;
+    console.log(data)
     return (
       <Fragment>
+        {
+          this.renderInput(data)
+        }
         <div
           style={{
             position: "relative",

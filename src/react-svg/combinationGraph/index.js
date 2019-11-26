@@ -55,16 +55,16 @@ export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetC
   };
   const { x_f, y_f, x_c, y_c, x_t, y_t } = computeLogicPoint(x, y, offsetCenterY);
   // 1. 菱形 - 连接点 的line
-  const rhombusToCenterLine = lineGraph(svg, x, y, x_c, y_c);
+  const rhombusToCenterLine = lineGraph(svg, x, y, x_c, y_c, "red");
   // 2. 连接点 - F 的line
   const centerToFalseLine = lineGraph(svg, x_c, y_c, x_f, y_f);
   // 3. 连接点 - T 的line
-  const centerToTrueLine = lineGraph(svg, x_c, y_c, x_t, y_t);
+  const centerToTrueLine = lineGraph(svg, x_c, y_c, x_t, y_t, "red");
 
   // 1. 画菱形
-  const rhombusE = rhombusGraph(svg, x, y);
+  const rhombusE = rhombusGraph(svg, x, y, "red");
   // 3. 画连接点
-  const centerE = circleGraph(svg, x_c, y_c, 5);
+  const centerE = circleGraph(svg, x_c, y_c, 5, "", "red");
   // 4. 画F
   const falseE = circleGraph(svg, x_f, y_f, 12, "F").attr({ class: "cursor-pointer" });
   falseE.click(() => {
@@ -82,7 +82,7 @@ export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetC
     NodeOperation(svg, x_f, y_f, 50, res, "F", node);
   });
   // 5. 画T
-  const trueE = circleGraph(svg, x_t, y_t, 12, "T").attr({ class: "cursor-pointer" });
+  const trueE = circleGraph(svg, x_t, y_t, 12, "T", "red").attr({ class: "cursor-pointer" });
   trueE.click(() => {
     const isDisabled = node.nextLeftNode === undefined;
     const res = operationObj.map(item => {
@@ -97,7 +97,5 @@ export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetC
     });
     NodeOperation(svg, x_t, y_t, 50, res, "T", node);
   });
-  // 6. 画折线
-  // lineGraph(svg, x_f, y_f, x_f + 100, y_f);
   return svg.g(rhombusToCenterLine, centerToFalseLine, centerToTrueLine, rhombusE, centerE, trueE, falseE);
 };
