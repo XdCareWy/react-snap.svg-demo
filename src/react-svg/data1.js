@@ -159,24 +159,161 @@ const data = [
   },
 ];
 
+const allData = [
+  {
+    "id": 1,
+    "type": 1,
+    "nextLeftNode": 2,
+    "label": "开始",
+    "condition": "",
+    "x": 120,
+    "y": 65,
+    "status": 0,
+    isActivity: true
+  },
+  {
+    "id": 2,
+    "type": 3,
+    "prevNode": 1,
+    "nextLeftNode": 1574835179627,
+    "nextRightNode": 1574835138148,
+    "label": "京腾支付价",
+    "status": 1,
+    "condition": "channelPrice.JDPrice > 323 && jxiang > 222",
+    isActivity: false,
+    "logicUnitData": [
+      {
+        "id": 1,
+        "type": 3,
+        "parentId": 2,
+        "tips": "channelPrice.JDPrice > 323",
+        "unitValue": {
+          "leftStyle": "1",
+          "leftType": "1",
+          "leftValue": [
+            "channelPrice",
+            "JDPrice",
+          ],
+          "expression": "1",
+          "rightStyle": "2",
+          "rightType": "1",
+          "rightValue": "323",
+        },
+      },
+      {
+        "id": 2,
+        "type": 1,
+        "label": "&&",
+        "parentId": undefined,
+      },
+      {
+        "id": 3,
+        "type": 3,
+        "label": 3,
+        "parentId": 2,
+        "tips": "jxiang > 222",
+        "unitValue": {
+          "leftStyle": "1",
+          "leftType": "1",
+          "leftValue": [
+            "jxiang",
+          ],
+          "expression": "1",
+          "rightStyle": "2",
+          "rightType": "1",
+          "rightValue": "222",
+        },
+      },
+    ],
+  },
+  {
+    "id": 1574835138148,
+    "type": 3,
+    "prevNode": 2,
+    "nextLeftNode": 1574835174931,
+    "nextRightNode": 1574835177147,
+    "label": "xxxx",
+    "status": 2,
+    "condition": "jxiang < 323 || channelPrice.TXPrice > 4343",
+    isActivity: true,
+    "logicUnitData": [
+      {
+        "id": 1,
+        "type": 3,
+        "parentId": 2,
+        "tips": "jxiang < 323",
+        "unitValue": {
+          "leftStyle": "1",
+          "leftType": "1",
+          "leftValue": [
+            "jxiang",
+          ],
+          "expression": "2",
+          "rightStyle": "2",
+          "rightType": "1",
+          "rightValue": "323",
+        },
+      },
+      {
+        "id": 2,
+        "type": 2,
+        "label": "||",
+        "parentId": undefined,
+      },
+      {
+        "id": 3,
+        "type": 3,
+        "label": 3,
+        "parentId": 2,
+        "tips": "channelPrice.TXPrice > 4343",
+        "unitValue": {
+          "leftStyle": "1",
+          "leftType": "1",
+          "leftValue": [
+            "channelPrice",
+            "TXPrice",
+          ],
+          "expression": "1",
+          "rightStyle": "2",
+          "rightType": "1",
+          "rightValue": "4343",
+        },
+      },
+    ],
+  },
+  {
+    "id": 1574835174931,
+    "type": 2,
+    "prevNode": 1574835138148,
+    "label": "ddd",
+    "condition": "请配置完成节点",
+    "status": 1,
+    isActivity: true
+  },
+  {
+    "id": 1574835177147,
+    "type": 2,
+    "prevNode": 1574835138148,
+    "label": "cxx",
+    "condition": "请配置完成节点",
+    "status": 2,
+    isActivity: false
+  },
+  {
+    "id": 1574835179627,
+    "type": 2,
+    "prevNode": 2,
+    "label": "asd",
+    "condition": "请配置完成节点",
+    "status": 1,
+    isActivity: false
+  },
+];
+
+
 const data_o = [
   { id: 1, type: 1, nextLeftNode: 2, label: "开始", condition: "", x: 120, y: 65, status: 0 },
-  { id: 2, type: 3, prevNode: 1,nextLeftNode:undefined, nextRightNode: undefined, label: "京腾支付价",  status: 1 },
-  // {
-  //   id: 3,
-  //   type: 3,
-  //   prevNode: 2,
-  //   nextLeftNode: 4,
-  //   nextRightNode: 6,
-  //   label: "xxxx",
-  //   condition: "xxx",
-  //   x: 255,
-  //   y: 175,
-  //   status: 1,
-  // },
-  // { id: 4, type: 3, prevNode: 3, nextRightNode: 5, label: "xxxx", condition: "xxx", x: 255, y: 335, status: 1 },
-  // { id: 5, type: 3, prevNode: 4, label: "xxxx", condition: "xxx", x: 455, y: 385, status: 1 },
-  // { id: 6, type: 3, prevNode: 3, label: "xxxx", condition: "xxx", x: 455, y: 225, status: 1 },
+  { id: 2, type: 3, prevNode: 1, nextLeftNode: undefined, nextRightNode: undefined, label: "京腾支付价", status: 1 },
 ];
 const data_o1 = [
   { id: 1, type: 1, nextLeftNode: 2, label: "开始", condition: "", x: 75, y: 65, x_t: 75, y_t: 65, status: 0 },
@@ -195,4 +332,4 @@ const data_o1 = [
   },
 ];
 
-export { data, TYPE, data_o, STATUS };
+export { data, TYPE, data_o, STATUS, allData };

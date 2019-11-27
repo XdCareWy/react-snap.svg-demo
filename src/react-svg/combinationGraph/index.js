@@ -48,25 +48,26 @@ export const computeLogicPoint = (x, y, offsetCenterY = 50) => {
  * @returns {React.ReactSVGElement | never}
  */
 export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetCenterY) => {
+  const isActivity = node.isActivity;
   const disabledAttr = {
     circleStroke: "#d9d9d9",
     circleFill: "#f5f5f5",
     textFill: "rgba(0,0,0,0.25)",
   };
   const { x_f, y_f, x_c, y_c, x_t, y_t } = computeLogicPoint(x, y, offsetCenterY);
-  // 1. 菱形 - 连接点 的line
-  const rhombusToCenterLine = lineGraph(svg, x, y, x_c, y_c, "red");
-  // 2. 连接点 - F 的line
-  const centerToFalseLine = lineGraph(svg, x_c, y_c, x_f, y_f);
-  // 3. 连接点 - T 的line
-  const centerToTrueLine = lineGraph(svg, x_c, y_c, x_t, y_t, "red");
+  // 1. 菱形 - 连接点 的line; isActivity为true、false，都激活
+  const rhombusToCenterLine = lineGraph(svg, x, y, x_c, y_c, [true, false].includes(isActivity) ? "red" : undefined);
+  // 2. 连接点 - F 的line； isActivity为true、undefined，不激活
+  const centerToFalseLine = lineGraph(svg, x_c, y_c, x_f, y_f, [true, undefined].includes(isActivity) ? undefined : "red");
+  // 3. 连接点 - T 的line; isActivity为false、undefined，不激活
+  const centerToTrueLine = lineGraph(svg, x_c, y_c, x_t, y_t, [false, undefined].includes(isActivity) ? undefined : "red");
 
-  // 1. 画菱形
-  const rhombusE = rhombusGraph(svg, x, y, "red");
-  // 3. 画连接点
-  const centerE = circleGraph(svg, x_c, y_c, 5, "", "red");
-  // 4. 画F
-  const falseE = circleGraph(svg, x_f, y_f, 12, "F").attr({ class: "cursor-pointer" });
+  // 1. 画菱形; isActivity为true、false，都激活
+  const rhombusE = rhombusGraph(svg, x, y, [true, false].includes(isActivity) ? "red" : undefined);
+  // 3. 画连接点; isActivity为true、false，都激活
+  const centerE = circleGraph(svg, x_c, y_c, 5, "", [true, false].includes(isActivity) ? "red" : undefined);
+  // 4. 画F; isActivity为true、undefined，不激活
+  const falseE = circleGraph(svg, x_f, y_f, 12, "F", [true, undefined].includes(isActivity) ? undefined : "red").attr({ class: "cursor-pointer" });
   falseE.click(() => {
     const isDisabled = node.nextRightNode === undefined;
     const res = operationObj.map(item => {
@@ -81,8 +82,8 @@ export const logicGraph = (svg, x, y, operationObj, node, offsetCenterX, offsetC
     });
     NodeOperation(svg, x_f, y_f, 50, res, "F", node);
   });
-  // 5. 画T
-  const trueE = circleGraph(svg, x_t, y_t, 12, "T", "red").attr({ class: "cursor-pointer" });
+  // 5. 画T; isActivity为false、undefined，不激活
+  const trueE = circleGraph(svg, x_t, y_t, 12, "T", [false, undefined].includes(isActivity) ? undefined : "red").attr({ class: "cursor-pointer" });
   trueE.click(() => {
     const isDisabled = node.nextLeftNode === undefined;
     const res = operationObj.map(item => {

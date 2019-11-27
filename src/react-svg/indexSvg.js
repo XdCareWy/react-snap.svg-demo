@@ -2,7 +2,7 @@ import React, { Component, Fragment } from "react";
 import { Modal, message, Input, Form } from "antd";
 import "antd/dist/antd.css";
 import "./index.css";
-import { TYPE, data_o, STATUS } from "./data1";
+import { TYPE, data_o, STATUS, allData } from "./data1";
 import { NodeOperation } from "./basicGraph/NodeOperation";
 import {
   responseRectText,
@@ -14,6 +14,8 @@ import {
 import { logicGraph, computeLogicPoint } from "./combinationGraph/index";
 import LogicConfig from "./logicConfig/index";
 
+const COLOR = "red";
+const isActivity = true;
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
 const finishMaxWidth = 100; // 结束节点最大宽度
@@ -24,7 +26,7 @@ class IndexSvg extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: data_o,
+      data: allData,
       visible: false,
       currentLogicNode: {},
       childContext: null,
@@ -166,10 +168,10 @@ class IndexSvg extends Component {
       attr: !isDisabled
         ? disabledAttr
         : {
-            circleStroke: "#38649E",
-            circleFill: "#E6F1FD",
-            textFill: "#336CA8",
-          },
+          circleStroke: "#38649E",
+          circleFill: "#E6F1FD",
+          textFill: "#336CA8",
+        },
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const plusLogicNode = {
@@ -179,10 +181,10 @@ class IndexSvg extends Component {
       attr: !isDisabled
         ? disabledAttr
         : {
-            circleStroke: "#38649E",
-            circleFill: "#E6F1FD",
-            textFill: "#336CA8",
-          },
+          circleStroke: "#38649E",
+          circleFill: "#E6F1FD",
+          textFill: "#336CA8",
+        },
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const plusFinishNode = {
@@ -192,10 +194,10 @@ class IndexSvg extends Component {
       attr: !isDisabled
         ? disabledAttr
         : {
-            circleStroke: "#38649E",
-            circleFill: "#E6F1FD",
-            textFill: "#336CA8",
-          },
+          circleStroke: "#38649E",
+          circleFill: "#E6F1FD",
+          textFill: "#336CA8",
+        },
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const deleteNode = {
@@ -255,7 +257,7 @@ class IndexSvg extends Component {
   recursionPaint = (svg, data) => {
     let offsetRightMaxX = 0;
     // 内部递归函数
-    const _innerRecursion = (currentNode, currentX, currentY, prevX, prevY) => {
+    const _innerRecursion = (currentNode, currentX, currentY, prevX, prevY, prevActivity) => {
       if (currentNode.type === TYPE.finish) {
         // 绘制结束操作
         const { width, height } = getResponseRectTextBox(svg, 0, 0, currentNode.label, finishMaxWidth);
@@ -269,7 +271,7 @@ class IndexSvg extends Component {
           finishMaxWidth,
           0,
           "rgb(240,240,240)",
-          "red"
+          currentNode.isActivity ? "red" : undefined,
         );
         // 绑定事件
         rectGroup.click(() => {
@@ -283,14 +285,14 @@ class IndexSvg extends Component {
             this.operationByType(currentNode.type, isDisabled),
             "finish",
             currentNode,
-            20
+            20,
           );
         });
         if (currentNode.status === STATUS.true) {
-          arrowLine(svg, prevX, prevY, prevX, finishY - 23, "red");
+          arrowLine(svg, prevX, prevY, prevX, finishY - 23, prevActivity && currentNode.isActivity ? "red" : undefined);
         } else if (currentNode.status === STATUS.false) {
           const { cx, cy, height } = rectGroup.getBBox();
-          brokenLineGraph(svg, prevX + 12, prevY, cx, cy - height / 2);
+          brokenLineGraph(svg, prevX + 12, prevY, cx, cy - height / 2, prevActivity === false && currentNode.isActivity ? "red" : undefined);
         }
         // 记录当前向右偏移量
         if (offsetRightMaxX < currentX + width / 2) {
@@ -303,12 +305,12 @@ class IndexSvg extends Component {
           currentX,
           currentY,
           currentNode,
-          this.operationByType(currentNode.type, true)
+          this.operationByType(currentNode.type, true),
         );
         if (currentNode.status === STATUS.true) {
-          arrowLine(svg, prevX, prevY, currentX, currentY - 10, "red");
+          arrowLine(svg, prevX, prevY, currentX, currentY - 10, prevActivity ? "red" : undefined);
         } else if (currentNode.status === STATUS.false) {
-          arrowLine(svg, prevX + 12, prevY, currentX - 30, currentY);
+          arrowLine(svg, prevX + 12, prevY, currentX - 30, currentY, prevActivity === false ? "red" : undefined);
         }
         // 右偏移量与当前逻辑F节点的x坐标对比，谁大用谁
         if (offsetRightMaxX < x_f) {
@@ -317,15 +319,15 @@ class IndexSvg extends Component {
         const left = data.find(item => item.id === currentNode.nextLeftNode);
         if (left) {
           // 迭代左子树
-          _innerRecursion(left, x_t, y_t + verticalSpacing, x_t, y_t + 12);
+          _innerRecursion(left, x_t, y_t + verticalSpacing, x_t, y_t + 12, currentNode.isActivity);
         }
         const right = data.find(item => item.id === currentNode.nextRightNode);
         if (right) {
           // 迭代右子树
           if (right.type === TYPE.rhombus) {
-            _innerRecursion(right, offsetRightMaxX + horizontalSpacing, y_f, x_f, y_f);
+            _innerRecursion(right, offsetRightMaxX + horizontalSpacing, y_f, x_f, y_f, currentNode.isActivity);
           } else if (right.type === TYPE.finish) {
-            _innerRecursion(right, offsetRightMaxX + horizontalSpacing, y_t + verticalSpacing, x_f, y_f);
+            _innerRecursion(right, offsetRightMaxX + horizontalSpacing, y_t + verticalSpacing, x_f, y_f, currentNode.isActivity);
           }
         }
         // 更新向右的偏移量
@@ -336,7 +338,7 @@ class IndexSvg extends Component {
     };
     const start = data.find(item => item.type === TYPE.start);
     // 1. 画开始节点
-    const rectStart = paintRectText(svg, start.x, start.y, start.label, "red");
+    const rectStart = paintRectText(svg, start.x, start.y, start.label, start.isActivity ? "red" : undefined);
     const { cx, cy, height } = rectStart.getBBox();
     // 绑定事件
     rectStart.click(() => {
@@ -349,13 +351,13 @@ class IndexSvg extends Component {
         50,
         this.operationByType(start.type, isDisabled),
         "开始",
-        start
+        start,
       );
     });
     // 开始节点之后的第一个节点
     const first = data.find(item => item.id === start.nextLeftNode);
     if (first) {
-      _innerRecursion(first, cx, cy + height / 2 + verticalSpacing, cx, cy + rectStart.getBBox().height / 2);
+      _innerRecursion(first, cx, cy + height / 2 + verticalSpacing, cx, cy + rectStart.getBBox().height / 2, start.isActivity);
     }
   };
 
@@ -368,33 +370,33 @@ class IndexSvg extends Component {
     >
       <Form>
         {data.map(item => {
-          if(item.type === TYPE.rhombus) {
-            const {logicUnitData=[]} = item;
+          if (item.type === TYPE.rhombus) {
+            const { logicUnitData = [] } = item;
             return logicUnitData.map(i => {
-             if(i.type === 3) {
-               const { unitValue = {} } = i || {};
-               const { leftStyle, leftValue } = unitValue;
-               if(+leftStyle === 1) {
-                 return <Form.Item label={leftValue.join(".")}>
-                   <Input/>
-                 </Form.Item>
-               }
-             }
-            })
+              if (i.type === 3) {
+                const { unitValue = {} } = i || {};
+                const { leftStyle, leftValue } = unitValue;
+                if (+leftStyle === 1) {
+                  return <Form.Item label={leftValue.join(".")}>
+                    <Input/>
+                  </Form.Item>;
+                }
+              }
+            });
 
           }
         })}
       </Form>
-    </div>
+    </div>;
   };
 
   render() {
     const { visible, currentLogicNode, data } = this.state;
-    console.log(data)
+    console.log(data);
     return (
       <Fragment>
         {
-          this.renderInput(data)
+          // this.renderInput(data)
         }
         <div
           style={{
@@ -404,7 +406,7 @@ class IndexSvg extends Component {
             border: "1px solid #dfdfdf",
             margin: "20px 0 0 20px",
           }}>
-          <svg id="svgId" width={2200} height={3800} />
+          <svg id="svgId" width={2200} height={3800}/>
         </div>
         {visible && (
           <Modal
@@ -436,7 +438,7 @@ class IndexSvg extends Component {
             {currentLogicNode.type === TYPE.finish && (
               <Fragment>
                 使用输入框模拟配置
-                <Input onChange={e => this.setState({ inputValue: e.target.value })} />
+                <Input onChange={e => this.setState({ inputValue: e.target.value })}/>
               </Fragment>
             )}
             {currentLogicNode.type === TYPE.rhombus && (
@@ -448,7 +450,7 @@ class IndexSvg extends Component {
                   border: "1px solid #dfdfdf",
                   overflow: "auto",
                 }}>
-                <LogicConfig getChild={context => this.setState({ childContext: context })} />
+                <LogicConfig getChild={context => this.setState({ childContext: context })}/>
               </div>
             )}
           </Modal>
