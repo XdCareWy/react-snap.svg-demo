@@ -1,18 +1,13 @@
 import React, { Component } from "react";
-import { circleGraph, lineGraph, getResponseRectTextBox, responseRectText } from "../basicGraph";
-import { NodeOperation } from "../basicGraph/NodeOperation";
+import { circleGraph, lineGraph, getResponseRectTextBox, responseRectText } from "./common/BasicGraph";
+import NodeOperation from "./common/NodeOperationGraph";
 import { Modal, message } from "antd";
-import LogicUnit from "./LogicUnit";
+import LogicUnit from "./LogicUnitConfig";
+import { LOGIC_TYPE, disabledAttr, configAttr, deleteAttr, addAttr, cancelAttr } from "./constants";
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
-const LOGIC_TYPE = {
-  and: 1,
-  or: 2,
-  none: 3,
-};
-
-class  LogicConfig extends Component {
+class LogicConfig extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -28,14 +23,7 @@ class  LogicConfig extends Component {
   }
 
   static getDerivedStateFromProps(props, state) {
-    const { value } = props;
-    const treeData = value || [
-      {
-        id: 1,
-        type: LOGIC_TYPE.none,
-        parentId: undefined,
-      },
-    ];
+    const { treeData } = state;
     const copyTreeData = LogicConfig.transformDataToTree(treeData);
     LogicConfig.transformTree(copyTreeData);
     LogicConfig.computeTreeDistance(copyTreeData);
@@ -190,59 +178,34 @@ class  LogicConfig extends Component {
   };
 
   operationByType = (type, isDisabled) => {
-    const disabledAttr = {
-      circleStroke: "#d9d9d9",
-      circleFill: "#f5f5f5",
-      textFill: "rgba(0,0,0,0.25)",
-    };
     const configLogicNode = {
       label: "S",
       clickFn: (svg, e, label, node) => {
         this.setState({ visible: true, currentData: node });
       },
       titleTips: "配置表达式",
-      attr: {
-        circleStroke: "#38649E",
-        circleFill: "#E6F1FD",
-        textFill: "#336CA8",
-      },
+      attr: configAttr,
       className: "cursor-pointer",
     };
     const plusLogicOr = {
       label: "||",
       clickFn: this.handleAdd,
       titleTips: "新增或节点",
-      attr: !isDisabled
-        ? disabledAttr
-        : {
-            circleStroke: "#38649E",
-            circleFill: "#E6F1FD",
-            textFill: "#336CA8",
-          },
+      attr: !isDisabled ? disabledAttr : addAttr,
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const plusLogicAnd = {
       label: "&&",
       clickFn: this.handleAdd,
       titleTips: "新增与节点",
-      attr: !isDisabled
-        ? disabledAttr
-        : {
-            circleStroke: "#38649E",
-            circleFill: "#E6F1FD",
-            textFill: "#336CA8",
-          },
+      attr: !isDisabled ? disabledAttr : addAttr,
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const deleteNode = {
       label: "-",
       clickFn: this.handleDelete,
       titleTips: "删除节点",
-      attr: {
-        circleStroke: "#920000",
-        circleFill: "#FCDBE0",
-        textFill: "#C71723",
-      },
+      attr: deleteAttr,
     };
     const cancel = {
       label: "C",
@@ -251,11 +214,7 @@ class  LogicConfig extends Component {
         r.remove();
       },
       titleTips: "取消",
-      attr: {
-        circleStroke: "red",
-        circleFill: "#FCDBE0",
-        textFill: "#C71723",
-      },
+      attr: cancelAttr,
     };
     const typeMap = {
       [LOGIC_TYPE.and]: [cancel, plusLogicOr, plusLogicAnd, deleteNode],
@@ -400,7 +359,7 @@ class  LogicConfig extends Component {
         <div
           style={{
             position: "absolute",
-            top: 10,
+            top: -5,
             left: 20,
           }}>
           {`完整的表达式：${this.getResult(transformTreeData[0], transformTreeData[0].type)}`}

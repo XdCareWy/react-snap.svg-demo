@@ -8,13 +8,14 @@ import Svg from "./react-svg/indexSvg"
 import LogicConfig from "./react-svg/logicConfig/index"
 // import ErrorDemo from "./errorDemo";
 // import ErrorBoundary from "./errorDemo/ErrorCatch";
+import SvgLogic from "./svg_logic"
 
 function App() {
   return (
     <div className="App">
       {/*<UseStateDemo />*/}
       {/*<LogicConfig></LogicConfig>*/}
-      <Svg />
+      <SvgLogic />
       {/*<CanvasDemo></CanvasDemo>*/}
       {/*<ErrorBoundary>*/}
       {/*  <ErrorDemo />*/}

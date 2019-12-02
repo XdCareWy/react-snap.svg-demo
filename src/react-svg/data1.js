@@ -159,6 +159,16 @@ const data = [
   },
 ];
 
+const apiDataMOock = {
+  code: 0,
+  result: {
+    channelPrice : {
+      JDPrice: 200
+    },
+    jxiang: 300
+  }
+};
+
 const allData = [
   {
     "id": 1,

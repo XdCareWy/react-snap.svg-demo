@@ -1,31 +1,37 @@
 import React, { Component, Fragment } from "react";
 import { Modal, message, Input, Form } from "antd";
-import "antd/dist/antd.css";
-import "./index.css";
-import { TYPE, data_o, STATUS, allData } from "./data1";
-import { NodeOperation } from "./basicGraph/NodeOperation";
+import { allData } from "./mock";
+import NodeOperation from "./common/NodeOperationGraph";
 import {
   responseRectText,
   getResponseRectTextBox,
   paintRectText,
   arrowLine,
   brokenLineGraph,
-} from "./basicGraph/index";
-import { logicGraph, computeLogicPoint } from "./combinationGraph/index";
-import LogicConfig from "./logicConfig/index";
+} from "./common/BasicGraph";
+import { logicGraph, computeLogicPoint } from "./common/LogicGraph";
+import {
+  TYPE,
+  STATUS,
+  ACTIVITY_COLOR,
+  LOGIC_TYPE,
+  startPoint,
+  disabledAttr,
+  addAttr,
+  cancelAttr,
+  configAttr,
+  deleteAttr,
+  finishAttr,
+} from "./constants";
+import RenderExpression from "./RenderExpression";
 
-const COLOR = "red";
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
-const LOGIC_TYPE = {
-  and: 1,
-  or: 2,
-  none: 3,
-};
+
 const finishMaxWidth = 100; // 结束节点最大宽度
 const conditionMaxWidth = 200; // 条件表达式最大宽度
 const verticalSpacing = 60; // 节点之间的垂直间距
 const horizontalSpacing = 100; // 节点之间的水平间距
-class IndexSvg extends Component {
+export default class RenderLogic extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -159,72 +165,41 @@ class IndexSvg extends Component {
   };
 
   operationByType = (type, isDisabled) => {
-    const disabledAttr = {
-      circleStroke: "#d9d9d9",
-      circleFill: "#f5f5f5",
-      textFill: "rgba(0,0,0,0.25)",
-    };
     const configLogicNode = {
       label: "S",
       clickFn: this.handleConfigLogic,
       titleTips: "配置逻辑单元",
-      attr: !isDisabled
-        ? disabledAttr
-        : {
-          circleStroke: "#38649E",
-          circleFill: "#E6F1FD",
-          textFill: "#336CA8",
-        },
+      attr: !isDisabled ? disabledAttr : configAttr,
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const plusLogicNode = {
       label: "+",
       clickFn: this.handleAddLogic,
       titleTips: "新增逻辑节点",
-      attr: !isDisabled
-        ? disabledAttr
-        : {
-          circleStroke: "#38649E",
-          circleFill: "#E6F1FD",
-          textFill: "#336CA8",
-        },
+      attr: !isDisabled ? disabledAttr : addAttr,
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const plusFinishNode = {
       label: "E",
       clickFn: this.handleAddFinish,
       titleTips: "新增完成节点",
-      attr: !isDisabled
-        ? disabledAttr
-        : {
-          circleStroke: "#38649E",
-          circleFill: "#E6F1FD",
-          textFill: "#336CA8",
-        },
+      attr: !isDisabled ? disabledAttr : finishAttr,
       className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
     };
     const deleteNode = {
       label: "-",
       clickFn: this.handleDelete,
       titleTips: "删除节点",
-      attr: {
-        circleStroke: "#920000",
-        circleFill: "#FCDBE0",
-        textFill: "#C71723",
-      },
+      attr: deleteAttr,
     };
     const cancel = {
       label: "C",
-      clickFn: function(svg, e, label) {
+      clickFn: function(svg) {
         const r = svg.select("#operationId");
         r.remove();
       },
       titleTips: "取消操作",
-      attr: {
-        circleStroke: "red",
-        circleFill: "#FCDBE0",
-        textFill: "#C71723",
-      },
+      attr: cancelAttr,
     };
     const typeMap = {
       [TYPE.start]: [plusFinishNode, cancel, plusLogicNode],
@@ -240,6 +215,7 @@ class IndexSvg extends Component {
     this.recursionPaint(svg, data);
   };
 
+  // 逻辑单元和矩形文本
   logicAndCircleTextGraph = (svg, x, y, currentNode, operationObj) => {
     // 画临时文字,来获取当前文本所占的宽度和高度
     const { height } = getResponseRectTextBox(svg, 0, 0, currentNode.condition, conditionMaxWidth);
@@ -274,7 +250,7 @@ class IndexSvg extends Component {
           finishMaxWidth,
           0,
           "rgb(240,240,240)",
-          currentNode.isActivity ? "red" : undefined,
+          currentNode.isActivity ? ACTIVITY_COLOR : undefined
         );
         // 绑定事件
         rectGroup.click(() => {
@@ -288,14 +264,28 @@ class IndexSvg extends Component {
             this.operationByType(currentNode.type, isDisabled),
             "finish",
             currentNode,
-            20,
+            20
           );
         });
         if (currentNode.status === STATUS.true) {
-          arrowLine(svg, prevX, prevY, prevX, finishY - 23, prevActivity && currentNode.isActivity ? "red" : undefined);
+          arrowLine(
+            svg,
+            prevX,
+            prevY,
+            prevX,
+            finishY - 23,
+            prevActivity && currentNode.isActivity ? ACTIVITY_COLOR : undefined
+          );
         } else if (currentNode.status === STATUS.false) {
           const { cx, cy, height } = rectGroup.getBBox();
-          brokenLineGraph(svg, prevX + 12, prevY, cx, cy - height / 2, prevActivity === false && currentNode.isActivity ? "red" : undefined);
+          brokenLineGraph(
+            svg,
+            prevX + 12,
+            prevY,
+            cx,
+            cy - height / 2,
+            prevActivity === false && currentNode.isActivity ? ACTIVITY_COLOR : undefined
+          );
         }
         // 记录当前向右偏移量
         if (offsetRightMaxX < currentX + width / 2) {
@@ -308,12 +298,19 @@ class IndexSvg extends Component {
           currentX,
           currentY,
           currentNode,
-          this.operationByType(currentNode.type, true),
+          this.operationByType(currentNode.type, true)
         );
         if (currentNode.status === STATUS.true) {
-          arrowLine(svg, prevX, prevY, currentX, currentY - 10, prevActivity ? "red" : undefined);
+          arrowLine(svg, prevX, prevY, currentX, currentY - 10, prevActivity ? ACTIVITY_COLOR : undefined);
         } else if (currentNode.status === STATUS.false) {
-          arrowLine(svg, prevX + 12, prevY, currentX - 30, currentY, prevActivity === false ? "red" : undefined);
+          arrowLine(
+            svg,
+            prevX + 12,
+            prevY,
+            currentX - 30,
+            currentY,
+            prevActivity === false ? ACTIVITY_COLOR : undefined
+          );
         }
         // 右偏移量与当前逻辑F节点的x坐标对比，谁大用谁
         if (offsetRightMaxX < x_f) {
@@ -330,7 +327,14 @@ class IndexSvg extends Component {
           if (right.type === TYPE.rhombus) {
             _innerRecursion(right, offsetRightMaxX + horizontalSpacing, y_f, x_f, y_f, currentNode.isActivity);
           } else if (right.type === TYPE.finish) {
-            _innerRecursion(right, offsetRightMaxX + horizontalSpacing, y_t + verticalSpacing, x_f, y_f, currentNode.isActivity);
+            _innerRecursion(
+              right,
+              offsetRightMaxX + horizontalSpacing,
+              y_t + verticalSpacing,
+              x_f,
+              y_f,
+              currentNode.isActivity
+            );
           }
         }
         // 更新向右的偏移量
@@ -341,7 +345,7 @@ class IndexSvg extends Component {
     };
     const start = data.find(item => item.type === TYPE.start);
     // 1. 画开始节点
-    const rectStart = paintRectText(svg, start.x, start.y, start.label, start.isActivity ? "red" : undefined);
+    const rectStart = paintRectText(svg, startPoint.x, startPoint.y, start.label, start.isActivity ? ACTIVITY_COLOR : undefined);
     const { cx, cy, height } = rectStart.getBBox();
     // 绑定事件
     rectStart.click(() => {
@@ -354,45 +358,53 @@ class IndexSvg extends Component {
         50,
         this.operationByType(start.type, isDisabled),
         "开始",
-        start,
+        start
       );
     });
     // 开始节点之后的第一个节点
     const first = data.find(item => item.id === start.nextLeftNode);
     if (first) {
-      _innerRecursion(first, cx, cy + height / 2 + verticalSpacing, cx, cy + rectStart.getBBox().height / 2, start.isActivity);
+      _innerRecursion(
+        first,
+        cx,
+        cy + height / 2 + verticalSpacing,
+        cx,
+        cy + rectStart.getBBox().height / 2,
+        start.isActivity
+      );
     }
   };
 
-  renderInput = (data) => {
-    return <div
-      style={{
-        border: "1px solid #dfdfdf",
-        margin: "20px 0 0 20px",
-      }}
-    >
-      <Form>
-        {data.map(item => {
-          if (item.type === TYPE.rhombus) {
-            const { logicUnitData = [] } = item;
-            return logicUnitData.map(i => {
-              if (i.type === 3) {
-                const { unitValue = {} } = i || {};
-                const { leftStyle, leftValue } = unitValue;
-                if (+leftStyle === 1) {
-                  return <Form.Item label={leftValue.join(".")}>
-                    <Input/>
-                  </Form.Item>;
+  renderInput = data => {
+    return (
+      <div
+        style={{
+          border: "1px solid #dfdfdf",
+          margin: "20px 0 0 20px",
+        }}>
+        <Form>
+          {data.map(item => {
+            if (item.type === TYPE.rhombus) {
+              const { logicUnitData = [] } = item;
+              return logicUnitData.map(i => {
+                if (i.type === 3) {
+                  const { unitValue = {} } = i || {};
+                  const { leftStyle, leftValue } = unitValue;
+                  if (+leftStyle === 1) {
+                    return (
+                      <Form.Item label={leftValue.join(".")}>
+                        <Input />
+                      </Form.Item>
+                    );
+                  }
                 }
-              }
-            });
-
-          }
-        })}
-      </Form>
-    </div>;
+              });
+            }
+          })}
+        </Form>
+      </div>
+    );
   };
-
 
   getComputeResult = (data, parentType) => {
     const dd = {
@@ -403,7 +415,6 @@ class IndexSvg extends Component {
     for (let i = 0; i < data.children.length; i++) {
       const child = data.children[i];
       if (child.type === LOGIC_TYPE.none) {
-
         arr.push(child.tips);
       }
       if (child.type === LOGIC_TYPE.or || child.type === LOGIC_TYPE.and) {
@@ -419,7 +430,7 @@ class IndexSvg extends Component {
 
   render() {
     const { visible, currentLogicNode, data } = this.state;
-    console.log(data);
+    console.log(visible);
     return (
       <Fragment>
         {
@@ -433,10 +444,12 @@ class IndexSvg extends Component {
             border: "1px solid #dfdfdf",
             margin: "20px 0 0 20px",
           }}>
-          <svg id="svgId" width={2200} height={3800}/>
+          <svg id="svgId" width={2200} height={3800} />
         </div>
         {visible && (
           <Modal
+            okText="确定"
+            cancelText="取消"
             width={800}
             title={"配置逻辑"}
             visible={visible}
@@ -474,10 +487,9 @@ class IndexSvg extends Component {
                   position: "relative",
                   width: "100%",
                   height: 600,
-                  border: "1px solid #dfdfdf",
                   overflow: "auto",
                 }}>
-                <LogicConfig value={currentLogicNode.logicUnitData} getChild={context => this.setState({ childContext: context })}/>
+                <RenderExpression value={currentLogicNode.logicUnitData} getChild={context => this.setState({ childContext: context })}/>
               </div>
             )}
           </Modal>
@@ -486,5 +498,3 @@ class IndexSvg extends Component {
     );
   }
 }
-
-export default IndexSvg;
