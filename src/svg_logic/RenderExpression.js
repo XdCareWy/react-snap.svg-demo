@@ -322,19 +322,35 @@ class LogicConfig extends Component {
 
   getAllResult = () => {
     const { transformTreeData, treeData } = this.state;
-    const express = this.getResult(transformTreeData[0], transformTreeData[0].type);
-    return {
-      logicUnitData: treeData,
-      expressStr: express,
-    };
+    const validateData = treeData.every(item => {
+      if (item.type === LOGIC_TYPE.none) {
+        return !!item.unitValue;
+      }
+      return true;
+    });
+    if (validateData) {
+      const express = this.getResult(transformTreeData[0], transformTreeData[0].type);
+      return {
+        logicUnitData: treeData,
+        expressStr: express,
+      };
+    } else {
+      message.destroy();
+      message.warn("请对该节点进行配置！");
+      return validateData;
+    }
   };
 
   getResult = (data, parentType) => {
     const dd = {
       [LOGIC_TYPE.or]: "||",
       [LOGIC_TYPE.and]: "&&",
+      [LOGIC_TYPE.none]: "",
     };
     const arr = [];
+    if(data.children.length === 0) {
+      return data.tips;
+    }
     for (let i = 0; i < data.children.length; i++) {
       const child = data.children[i];
       if (child.type === LOGIC_TYPE.none) {

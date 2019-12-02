@@ -1,6 +1,5 @@
 import React, { Component, Fragment } from "react";
 import { Modal, message, Input, Form } from "antd";
-import { allData } from "./mock";
 import NodeOperation from "./common/NodeOperationGraph";
 import {
   responseRectText,
@@ -35,7 +34,19 @@ export default class RenderLogic extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: allData,
+      data: props.value.length
+        ? props.value
+        : [
+            {
+              id: 1,
+              type: 1,
+              nextLeftNode: undefined,
+              label: "开始",
+              condition: "",
+              status: 0,
+              isActivity: false,
+            },
+          ],
       visible: false,
       currentLogicNode: {},
       childContext: null,
@@ -54,7 +65,7 @@ export default class RenderLogic extends Component {
 
   // 操作 - 添加结束单元
   handleAddFinish = (svg, e, label, node, trueOrFalse) => {
-    if (!node.condition) {
+    if (node.type === TYPE.rhombus && !node.condition) {
       message.destroy();
       message.warn("请先配置该逻辑单元");
     } else {
@@ -65,7 +76,7 @@ export default class RenderLogic extends Component {
         type: TYPE.finish,
         prevNode: node.id,
         label: "请配置完成节点",
-        condition: "请配置完成节点",
+        condition: undefined,
         status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
       };
       // 更改当前节点的nextLeftNode和nextRightNode
@@ -85,7 +96,7 @@ export default class RenderLogic extends Component {
 
   // 操作 - 添加逻辑单元
   handleAddLogic = (svg, e, label, node, trueOrFalse) => {
-    if (!node.condition) {
+    if (node.type === TYPE.rhombus && !node.condition) {
       message.destroy();
       message.warn("请先配置该逻辑单元");
     } else {
@@ -98,8 +109,8 @@ export default class RenderLogic extends Component {
         prevNode: node.id,
         nextLeftNode: undefined,
         nextRightNode: undefined,
-        label: "xxxx",
-        // condition: `xxxxx: ${uuid}`,
+        label: "逻辑单元",
+        condition: undefined,
         status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
       };
       // 更改当前节点的nextLeftNode和nextRightNode
@@ -136,6 +147,8 @@ export default class RenderLogic extends Component {
     Modal.confirm({
       title: "删除",
       content: "删除该节点及其所有子孙节点，确定删除吗？",
+      okText: "确定",
+      cancelText: "取消",
       onOk: () => {
         const { data } = this.state;
         const deleteIds = this.getDeleteIds(node, data);
@@ -345,7 +358,13 @@ export default class RenderLogic extends Component {
     };
     const start = data.find(item => item.type === TYPE.start);
     // 1. 画开始节点
-    const rectStart = paintRectText(svg, startPoint.x, startPoint.y, start.label, start.isActivity ? ACTIVITY_COLOR : undefined);
+    const rectStart = paintRectText(
+      svg,
+      startPoint.x,
+      startPoint.y,
+      start.label,
+      start.isActivity ? ACTIVITY_COLOR : undefined
+    );
     const { cx, cy, height } = rectStart.getBBox();
     // 绑定事件
     rectStart.click(() => {
@@ -430,7 +449,6 @@ export default class RenderLogic extends Component {
 
   render() {
     const { visible, currentLogicNode, data } = this.state;
-    console.log(visible);
     return (
       <Fragment>
         {
@@ -456,29 +474,33 @@ export default class RenderLogic extends Component {
             onCancel={() => this.setState({ visible: false })}
             onOk={() => {
               const { data, currentLogicNode, inputValue, childContext } = this.state;
-              const changeData = data.map(item => {
-                if (item.id === currentLogicNode.id && currentLogicNode.type === TYPE.rhombus) {
-                  const { logicUnitData, expressStr } = childContext.getAllResult();
-                  return {
-                    ...item,
-                    condition: expressStr,
-                    logicUnitData: logicUnitData,
-                  };
-                }
-                if (item.id === currentLogicNode.id && currentLogicNode.type === TYPE.finish) {
-                  return {
-                    ...item,
-                    label: inputValue,
-                  };
-                }
-                return item;
-              });
-              this.setState({ visible: false, data: changeData });
+              if(childContext.getAllResult()) {
+                const changeData = data.map(item => {
+                  if (item.id === currentLogicNode.id && currentLogicNode.type === TYPE.rhombus) {
+                    if (!childContext.getAllResult()) return item;
+                    const { logicUnitData, expressStr } = childContext.getAllResult();
+                    return {
+                      ...item,
+                      condition: expressStr,
+                      logicUnitData: logicUnitData,
+                    };
+                  }
+                  if (item.id === currentLogicNode.id && currentLogicNode.type === TYPE.finish) {
+                    return {
+                      ...item,
+                      label: inputValue,
+                      condition: inputValue,
+                    };
+                  }
+                  return item;
+                });
+                this.setState({ visible: false, data: changeData });
+              }
             }}>
             {currentLogicNode.type === TYPE.finish && (
               <Fragment>
                 使用输入框模拟配置
-                <Input onChange={e => this.setState({ inputValue: e.target.value })}/>
+                <Input onChange={e => this.setState({ inputValue: e.target.value })} />
               </Fragment>
             )}
             {currentLogicNode.type === TYPE.rhombus && (
@@ -489,7 +511,10 @@ export default class RenderLogic extends Component {
                   height: 600,
                   overflow: "auto",
                 }}>
-                <RenderExpression value={currentLogicNode.logicUnitData} getChild={context => this.setState({ childContext: context })}/>
+                <RenderExpression
+                  value={currentLogicNode.logicUnitData}
+                  getChild={context => this.setState({ childContext: context })}
+                />
               </div>
             )}
           </Modal>
