@@ -7,7 +7,7 @@ export const ACTIVITY_COLOR = "red";
 // 逻辑类型
 export const LOGIC_TYPE = { and: 1, or: 2, none: 3 };
 
-export const startPoint = { x: 120, y: 65 };
+export const startPoint = { x: 120, y: 47 };
 
 export const disabledAttr = { circleStroke: "#d9d9d9", circleFill: "#f5f5f5", textFill: "rgba(0,0,0,0.25)" };
 export const configAttr = { circleStroke: "#38649E", circleFill: "#E6F1FD", textFill: "#336CA8" };

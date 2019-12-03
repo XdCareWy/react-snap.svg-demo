@@ -23,6 +23,7 @@ import {
   finishAttr,
 } from "./constants";
 import RenderExpression from "./RenderExpression";
+import RenderInput from "./RenderInput";
 
 const Snap = require(`imports-loader?this=>window,fix=>module.exports=0!snapsvg/dist/snap.svg.js`);
 
@@ -54,8 +55,10 @@ export default class RenderLogic extends Component {
   }
 
   componentDidMount() {
+    const { getChild } = this.props;
     const { data } = this.state;
     this.renderSvg(data);
+    getChild && getChild(this);
   }
 
   componentDidUpdate(prevProps, prevState, snapshot) {
@@ -394,37 +397,6 @@ export default class RenderLogic extends Component {
     }
   };
 
-  renderInput = data => {
-    return (
-      <div
-        style={{
-          border: "1px solid #dfdfdf",
-          margin: "20px 0 0 20px",
-        }}>
-        <Form>
-          {data.map(item => {
-            if (item.type === TYPE.rhombus) {
-              const { logicUnitData = [] } = item;
-              return logicUnitData.map(i => {
-                if (i.type === 3) {
-                  const { unitValue = {} } = i || {};
-                  const { leftStyle, leftValue } = unitValue;
-                  if (+leftStyle === 1) {
-                    return (
-                      <Form.Item label={leftValue.join(".")}>
-                        <Input />
-                      </Form.Item>
-                    );
-                  }
-                }
-              });
-            }
-          })}
-        </Form>
-      </div>
-    );
-  };
-
   getComputeResult = (data, parentType) => {
     const dd = {
       [LOGIC_TYPE.or]: "||",
@@ -447,22 +419,35 @@ export default class RenderLogic extends Component {
     }
   };
 
+  getJson = () => {
+    const { data } = this.state;
+    return data;
+  };
+
   render() {
     const { visible, currentLogicNode, data } = this.state;
     return (
       <Fragment>
         {
-          // this.renderInput(data)
+          <RenderInput value={data} />
         }
         <div
           style={{
             position: "relative",
-            width: 2200,
-            height: 3800,
-            border: "1px solid #dfdfdf",
-            margin: "20px 0 0 20px",
+            borderTop: "2px solid #dfdfdf",
+            margin: "10px 0 0 5px",
           }}>
-          <svg id="svgId" width={2200} height={3800} />
+          <div style={{margin: "5px 10px", display: "inline-block"}}>
+            <div style={{border: "1px solid #dfdfdf", padding: "5px 10px", display: "inline-block", margin: "0 5px"}}>
+              <div>channelPrice.JDPrice: 148</div>
+              <div>jxiang: 2000</div>
+            </div>
+            <div style={{border: "1px solid #dfdfdf", padding: "5px 10px", display: "inline-block"}}>
+              <div>channelPrice.TXPrice: 98</div>
+              <div>jxiang: 1000</div>
+            </div>
+          </div>
+          <svg id="svgId" width="100%" height="100vh" />
         </div>
         {visible && (
           <Modal
@@ -474,7 +459,7 @@ export default class RenderLogic extends Component {
             onCancel={() => this.setState({ visible: false })}
             onOk={() => {
               const { data, currentLogicNode, inputValue, childContext } = this.state;
-              if(childContext.getAllResult()) {
+              if (childContext.getAllResult()) {
                 const changeData = data.map(item => {
                   if (item.id === currentLogicNode.id && currentLogicNode.type === TYPE.rhombus) {
                     if (!childContext.getAllResult()) return item;
