@@ -1,6 +1,6 @@
 import React, { Component, Fragment } from "react";
 import { Form, Button, Input } from "antd";
-import { TYPE } from "./constants";
+import { LOGIC_TYPE, TYPE } from "./constants";
 
 class RenderInput extends Component {
   handleOk = e => {
@@ -8,10 +8,36 @@ class RenderInput extends Component {
     const {
       form: { validateFields },
       value,
+      onChange,
     } = this.props;
     validateFields((error, values) => {
-      console.log(values);
-      console.log(value);
+      const changeData = value.map(item => {
+        if (item.type === TYPE.rhombus) {
+          const { logicUnitData, ...rest } = item;
+          const change = logicUnitData.map(unit => {
+            if (unit.type === LOGIC_TYPE.none) {
+              const { unitValue = {}, id } = unit || {};
+              const { leftStyle, leftValue } = unitValue;
+              if (+leftStyle === 1) {
+                const key = `${item.id}-${id}-${leftValue.join("_")}`;
+                const v = values[key];
+                return {
+                  ...unit,
+                  mockValue: v,
+                };
+              }
+              return unit;
+            }
+            return unit;
+          });
+          return {
+            ...rest,
+            logicUnitData: change,
+          };
+        }
+        return item;
+      });
+      onChange && onChange(changeData);
     });
   };
   render() {
@@ -36,7 +62,7 @@ class RenderInput extends Component {
                     padding: "0 10px",
                   }}>
                   {logicUnitData.map(unit => {
-                    if (unit.type === 3) {
+                    if (unit.type === LOGIC_TYPE.none) {
                       const { unitValue = {}, id } = unit || {};
                       const { leftStyle, leftValue } = unitValue;
                       if (+leftStyle === 1) {

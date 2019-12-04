@@ -63,6 +63,7 @@ class LogicConfig extends Component {
       for (let node of data) {
         if (node.parentId === parentId) {
           const o = {
+            ...node,
             id: node.id,
             type: node.type,
             label: node.label,

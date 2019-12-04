@@ -14,6 +14,7 @@ import {
   STATUS,
   ACTIVITY_COLOR,
   LOGIC_TYPE,
+  symbolMap,
   startPoint,
   disabledAttr,
   addAttr,
@@ -397,16 +398,56 @@ export default class RenderLogic extends Component {
     }
   };
 
-  getComputeResult = (data, parentType) => {
+  getJson = () => {
+    const { data } = this.state;
+    return data;
+  };
+
+  transformDataToTree = data => {
+    const _fn = function(parentId) {
+      const list = [];
+      for (let node of data) {
+        if (node.parentId === parentId) {
+          const o = {
+            ...node,
+            id: node.id,
+            type: node.type,
+            label: node.label,
+            parentId: node.parentId,
+            tips: node.tips,
+            unitValue: node.unitValue,
+          };
+          o.children = _fn(node.id);
+          list.push(o);
+        }
+      }
+      return list;
+    };
+    return _fn(void 0);
+  };
+
+  computeActivity = logicUnitData => {
+    const transformData = this.transformDataToTree(logicUnitData);
+    const res = this.getResult(transformData[0], transformData[0].type);
+    return eval(res.toString());
+  };
+
+  getResult = (data, parentType) => {
     const dd = {
       [LOGIC_TYPE.or]: "||",
       [LOGIC_TYPE.and]: "&&",
+      [LOGIC_TYPE.none]: "",
     };
     const arr = [];
+    if (data.children.length === 0) {
+      const { unitValue, mockValue } = data;
+      return `${mockValue} ${symbolMap[unitValue.expression]} ${unitValue.rightValue}`;
+    }
     for (let i = 0; i < data.children.length; i++) {
       const child = data.children[i];
       if (child.type === LOGIC_TYPE.none) {
-        arr.push(child.tips);
+        const { unitValue, mockValue } = child;
+        arr.push(`${mockValue} ${symbolMap[unitValue.expression]} ${unitValue.rightValue}`);
       }
       if (child.type === LOGIC_TYPE.or || child.type === LOGIC_TYPE.and) {
         arr.push(this.getResult(child, data.type));
@@ -419,30 +460,79 @@ export default class RenderLogic extends Component {
     }
   };
 
-  getJson = () => {
-    const { data } = this.state;
-    return data;
+  onChangeData = value => {
+    // 1. 处理开始节点，将其设为true；处理逻辑节点，计算其节点的值
+    const changeStartOrRhombus = value.map(item => {
+      if (item.type === TYPE.start) {
+        return {
+          ...item,
+          isActivity: true,
+        };
+      }
+      if (item.type === TYPE.rhombus) {
+        return {
+          ...item,
+          isActivity: this.computeActivity(item.logicUnitData),
+        };
+      }
+      return item;
+    });
+    // 2. 逻辑单元处理后，需要根据它的父节点来决定其是否激活
+    const changeRhombus = changeStartOrRhombus.map(item => {
+      if (item.type === TYPE.rhombus) {
+        let isActivity = undefined;
+        const parent = changeStartOrRhombus.find(i => i.id === item.prevNode);
+        if (
+          (parent.isActivity === false && parent.nextRightNode === item.id) ||
+          (parent.isActivity === true && parent.nextLeftNode === item.id)
+        ) {
+          isActivity = item.isActivity;
+        }
+        return {
+          ...item,
+          isActivity: isActivity,
+        };
+      }
+      return item;
+    });
+    // 3. 处理完成节点
+    const changeFinish = changeRhombus.map(item => {
+      if (item.type === TYPE.finish) {
+        let isActivity = false;
+        const parent = changeRhombus.find(i => i.id === item.prevNode);
+        if (
+          (parent.isActivity === false && parent.nextRightNode === item.id) ||
+          (parent.isActivity === true && parent.nextLeftNode === item.id)
+        ) {
+          isActivity = true;
+        }
+        return {
+          ...item,
+          isActivity: isActivity,
+        };
+      }
+      return item;
+    });
+    this.setState({ data: changeFinish });
   };
 
   render() {
     const { visible, currentLogicNode, data } = this.state;
     return (
       <Fragment>
-        {
-          <RenderInput value={data} />
-        }
+        {<RenderInput value={data} onChange={v => this.onChangeData(v)} />}
         <div
           style={{
             position: "relative",
             borderTop: "2px solid #dfdfdf",
             margin: "10px 0 0 5px",
           }}>
-          <div style={{margin: "5px 10px", display: "inline-block"}}>
-            <div style={{border: "1px solid #dfdfdf", padding: "5px 10px", display: "inline-block", margin: "0 5px"}}>
+          <div style={{ margin: "5px 10px", display: "inline-block" }}>
+            <div style={{ border: "1px solid #dfdfdf", padding: "5px 10px", display: "inline-block", margin: "0 5px" }}>
               <div>channelPrice.JDPrice: 148</div>
               <div>jxiang: 2000</div>
             </div>
-            <div style={{border: "1px solid #dfdfdf", padding: "5px 10px", display: "inline-block"}}>
+            <div style={{ border: "1px solid #dfdfdf", padding: "5px 10px", display: "inline-block" }}>
               <div>channelPrice.TXPrice: 98</div>
               <div>jxiang: 1000</div>
             </div>
