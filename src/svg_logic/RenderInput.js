@@ -40,12 +40,20 @@ class RenderInput extends Component {
       onChange && onChange(changeData);
     });
   };
+  handleReset = e => {
+    e.preventDefault();
+    const {
+      form: { resetFields },
+      onReset,
+    } = this.props;
+    resetFields();
+    onReset && onReset();
+  };
   render() {
     const {
       form: { getFieldDecorator },
       value,
     } = this.props;
-    console.log(value);
     return (
       <div style={{ background: "#eeeeee", padding: "8px 0", margin: "0 5px" }}>
         <Form onSubmit={this.handleOk} layout="inline">
@@ -81,7 +89,9 @@ class RenderInput extends Component {
             }
           })}
           <Form.Item>
-            <Button style={{ marginRight: 10, marginLeft: 15 }}>重置</Button>
+            <Button style={{ marginRight: 10, marginLeft: 15 }} onClick={this.handleReset}>
+              重置
+            </Button>
             <Button type="primary" htmlType="submit">
               确定
             </Button>

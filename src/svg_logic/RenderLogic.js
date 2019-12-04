@@ -516,11 +516,20 @@ export default class RenderLogic extends Component {
     this.setState({ data: changeFinish });
   };
 
+  onReset = () => {
+    const { data } = this.state;
+    const resetData = data.map(item => {
+      const { isActivity, ...rest } = item;
+      return rest;
+    });
+    this.setState({ data: resetData });
+  };
+
   render() {
     const { visible, currentLogicNode, data } = this.state;
     return (
       <Fragment>
-        {<RenderInput value={data} onChange={v => this.onChangeData(v)} />}
+        {<RenderInput value={data} onChange={v => this.onChangeData(v)} onReset={this.onReset} />}
         <div
           style={{
             position: "relative",
