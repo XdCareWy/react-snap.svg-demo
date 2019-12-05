@@ -536,16 +536,6 @@ export default class RenderLogic extends Component {
             borderTop: "2px solid #dfdfdf",
             margin: "10px 0 0 5px",
           }}>
-          <div style={{ margin: "5px 10px", display: "inline-block" }}>
-            <div style={{ border: "1px solid #dfdfdf", padding: "5px 10px", display: "inline-block", margin: "0 5px" }}>
-              <div>channelPrice.JDPrice: 148</div>
-              <div>jxiang: 2000</div>
-            </div>
-            <div style={{ border: "1px solid #dfdfdf", padding: "5px 10px", display: "inline-block" }}>
-              <div>channelPrice.TXPrice: 98</div>
-              <div>jxiang: 1000</div>
-            </div>
-          </div>
           <svg id="svgId" width="100%" height="100vh" />
         </div>
         {visible && (
