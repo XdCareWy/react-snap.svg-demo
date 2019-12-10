@@ -2,7 +2,7 @@ import React, { Component, Fragment } from "react";
 import "antd/dist/antd.css";
 import "./index.css";
 import RenderLogic from "./RenderLogic";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 import { allData } from "./mock";
 
 export default class Index extends Component {
@@ -10,8 +10,10 @@ export default class Index extends Component {
     super(props);
     this.state = {
       child: null,
+      visible: false,
     };
   }
+  handleOk = () => {};
   handleClick = () => {
     const { child } = this.state;
     if (child) {
@@ -21,10 +23,17 @@ export default class Index extends Component {
   };
   render() {
     const data = allData;
+    const { visible } = this.state;
     return (
       <Fragment>
-        {/*<Button onClick={this.handleClick}>确定</Button>*/}
-        <RenderLogic value={data} getChild={ctx => this.setState({ child: ctx })} />
+        <Button onClick={() => this.setState({ visible: true })}>逻辑编辑</Button>
+        <Modal
+          width={900}
+          visible={visible}
+          onOk={this.handleClick}
+          onCancel={() => this.setState({ visible: false })}>
+          <RenderLogic value={data} getChild={ctx => this.setState({ child: ctx })} />
+        </Modal>
       </Fragment>
     );
   }

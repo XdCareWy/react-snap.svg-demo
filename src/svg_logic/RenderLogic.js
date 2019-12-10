@@ -6,7 +6,7 @@ import {
   getResponseRectTextBox,
   paintRectText,
   arrowLine,
-  brokenLineGraph,
+  brokenLineGraph
 } from "./common/BasicGraph";
 import { logicGraph, computeLogicPoint } from "./common/LogicGraph";
 import {
@@ -21,7 +21,7 @@ import {
   cancelAttr,
   configAttr,
   deleteAttr,
-  finishAttr,
+  finishAttr
 } from "./constants";
 import RenderExpression from "./RenderExpression";
 import RenderInput from "./RenderInput";
@@ -32,6 +32,7 @@ const finishMaxWidth = 100; // 结束节点最大宽度
 const conditionMaxWidth = 200; // 条件表达式最大宽度
 const verticalSpacing = 60; // 节点之间的垂直间距
 const horizontalSpacing = 100; // 节点之间的水平间距
+let maxWidth = 0;
 export default class RenderLogic extends Component {
   constructor(props) {
     super(props);
@@ -46,12 +47,12 @@ export default class RenderLogic extends Component {
               label: "开始",
               condition: "",
               status: 0,
-              isActivity: false,
-            },
+              isActivity: false
+            }
           ],
       visible: false,
       currentLogicNode: {},
-      childContext: null,
+      childContext: null
     };
   }
 
@@ -81,15 +82,17 @@ export default class RenderLogic extends Component {
         prevNode: node.id,
         label: "请配置完成节点",
         condition: undefined,
-        status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
+        status: trueOrFalse === "F" ? STATUS.false : STATUS.true
       };
       // 更改当前节点的nextLeftNode和nextRightNode
       const changeData = data.map(item => {
         if (item.id === node.id) {
           return {
             ...item,
-            nextLeftNode: trueOrFalse === "F" ? item.nextLeftNode : finishNode.id,
-            nextRightNode: trueOrFalse === "F" ? finishNode.id : item.nextRightNode,
+            nextLeftNode:
+              trueOrFalse === "F" ? item.nextLeftNode : finishNode.id,
+            nextRightNode:
+              trueOrFalse === "F" ? finishNode.id : item.nextRightNode
           };
         }
         return item;
@@ -115,7 +118,7 @@ export default class RenderLogic extends Component {
         nextRightNode: undefined,
         label: "逻辑单元",
         condition: undefined,
-        status: trueOrFalse === "F" ? STATUS.false : STATUS.true,
+        status: trueOrFalse === "F" ? STATUS.false : STATUS.true
       };
       // 更改当前节点的nextLeftNode和nextRightNode
       const changeData = data.map(item => {
@@ -123,7 +126,7 @@ export default class RenderLogic extends Component {
           return {
             ...item,
             nextLeftNode: trueOrFalse === "F" ? item.nextLeftNode : newNode.id,
-            nextRightNode: trueOrFalse === "F" ? newNode.id : item.nextRightNode,
+            nextRightNode: trueOrFalse === "F" ? newNode.id : item.nextRightNode
           };
         }
         return item;
@@ -162,18 +165,20 @@ export default class RenderLogic extends Component {
         // 对该节点的父节点的指向进行重置
         changeData = changeData.map(item => {
           if (item.id === prevNode.id) {
-            const left = changeData.find(item => item.id === prevNode.nextLeftNode) || {};
-            const right = changeData.find(item => item.id === prevNode.nextRightNode) || {};
+            const left =
+              changeData.find(item => item.id === prevNode.nextLeftNode) || {};
+            const right =
+              changeData.find(item => item.id === prevNode.nextRightNode) || {};
             return {
               ...item,
               nextLeftNode: left.id,
-              nextRightNode: right.id,
+              nextRightNode: right.id
             };
           }
           return item;
         });
         this.setState({ data: changeData });
-      },
+      }
     });
   };
 
@@ -187,27 +192,27 @@ export default class RenderLogic extends Component {
       clickFn: this.handleConfigLogic,
       titleTips: "配置逻辑单元",
       attr: !isDisabled ? disabledAttr : configAttr,
-      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
+      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer"
     };
     const plusLogicNode = {
       label: "+",
       clickFn: this.handleAddLogic,
       titleTips: "新增逻辑节点",
       attr: !isDisabled ? disabledAttr : addAttr,
-      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
+      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer"
     };
     const plusFinishNode = {
       label: "E",
       clickFn: this.handleAddFinish,
       titleTips: "新增完成节点",
       attr: !isDisabled ? disabledAttr : finishAttr,
-      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer",
+      className: !isDisabled ? "cursor-not-allowed" : "cursor-pointer"
     };
     const deleteNode = {
       label: "-",
       clickFn: this.handleDelete,
       titleTips: "删除节点",
-      attr: deleteAttr,
+      attr: deleteAttr
     };
     const cancel = {
       label: "C",
@@ -216,12 +221,18 @@ export default class RenderLogic extends Component {
         r.remove();
       },
       titleTips: "取消操作",
-      attr: cancelAttr,
+      attr: cancelAttr
     };
     const typeMap = {
       [TYPE.start]: [plusFinishNode, cancel, plusLogicNode],
-      [TYPE.rhombus]: [plusLogicNode, cancel, plusFinishNode, configLogicNode, deleteNode],
-      [TYPE.finish]: [deleteNode, configLogicNode, cancel],
+      [TYPE.rhombus]: [
+        plusLogicNode,
+        cancel,
+        plusFinishNode,
+        configLogicNode,
+        deleteNode
+      ],
+      [TYPE.finish]: [deleteNode, configLogicNode, cancel]
     };
     return typeMap[type];
   };
@@ -229,15 +240,27 @@ export default class RenderLogic extends Component {
   renderSvg = data => {
     const svg = Snap("#svgId");
     svg.clear();
-    this.recursionPaint(svg, data);
+    maxWidth = this.recursionPaint(svg, data);
   };
 
   // 逻辑单元和矩形文本
   logicAndCircleTextGraph = (svg, x, y, currentNode, operationObj) => {
     // 画临时文字,来获取当前文本所占的宽度和高度
-    const { height } = getResponseRectTextBox(svg, 0, 0, currentNode.condition, conditionMaxWidth);
+    const { height } = getResponseRectTextBox(
+      svg,
+      0,
+      0,
+      currentNode.condition,
+      conditionMaxWidth
+    );
     // 绘制矩形文本
-    const { rectGroup } = responseRectText(svg, x, y, currentNode.condition, conditionMaxWidth);
+    const { rectGroup } = responseRectText(
+      svg,
+      x,
+      y,
+      currentNode.condition,
+      conditionMaxWidth
+    );
     // 绘制逻辑单元
     const r = logicGraph(svg, x, y, operationObj, currentNode, 0, height);
     const logicCoordinate = computeLogicPoint(x, y, height);
@@ -246,17 +269,30 @@ export default class RenderLogic extends Component {
       x_f: logicCoordinate.x_f,
       y_f: logicCoordinate.y_f,
       x_t: logicCoordinate.x_t,
-      y_t: logicCoordinate.y_t,
+      y_t: logicCoordinate.y_t
     };
   };
 
   recursionPaint = (svg, data) => {
     let offsetRightMaxX = 0;
     // 内部递归函数
-    const _innerRecursion = (currentNode, currentX, currentY, prevX, prevY, prevActivity) => {
+    const _innerRecursion = (
+      currentNode,
+      currentX,
+      currentY,
+      prevX,
+      prevY,
+      prevActivity
+    ) => {
       if (currentNode.type === TYPE.finish) {
         // 绘制结束操作
-        const { width, height } = getResponseRectTextBox(svg, 0, 0, currentNode.label, finishMaxWidth);
+        const { width, height } = getResponseRectTextBox(
+          svg,
+          0,
+          0,
+          currentNode.label,
+          finishMaxWidth
+        );
         let finishX = currentX - width / 2 - 50 + 10;
         let finishY = currentY - height / 2 - 20 + verticalSpacing;
         const { rectGroup } = responseRectText(
@@ -301,7 +337,9 @@ export default class RenderLogic extends Component {
             prevY,
             cx,
             cy - height / 2,
-            prevActivity === false && currentNode.isActivity ? ACTIVITY_COLOR : undefined
+            prevActivity === false && currentNode.isActivity
+              ? ACTIVITY_COLOR
+              : undefined
           );
         }
         // 记录当前向右偏移量
@@ -318,7 +356,14 @@ export default class RenderLogic extends Component {
           this.operationByType(currentNode.type, true)
         );
         if (currentNode.status === STATUS.true) {
-          arrowLine(svg, prevX, prevY, currentX, currentY - 10, prevActivity ? ACTIVITY_COLOR : undefined);
+          arrowLine(
+            svg,
+            prevX,
+            prevY,
+            currentX,
+            currentY - 10,
+            prevActivity ? ACTIVITY_COLOR : undefined
+          );
         } else if (currentNode.status === STATUS.false) {
           arrowLine(
             svg,
@@ -336,13 +381,27 @@ export default class RenderLogic extends Component {
         const left = data.find(item => item.id === currentNode.nextLeftNode);
         if (left) {
           // 迭代左子树
-          _innerRecursion(left, x_t, y_t + verticalSpacing, x_t, y_t + 12, currentNode.isActivity);
+          _innerRecursion(
+            left,
+            x_t,
+            y_t + verticalSpacing,
+            x_t,
+            y_t + 12,
+            currentNode.isActivity
+          );
         }
         const right = data.find(item => item.id === currentNode.nextRightNode);
         if (right) {
           // 迭代右子树
           if (right.type === TYPE.rhombus) {
-            _innerRecursion(right, offsetRightMaxX + horizontalSpacing, y_f, x_f, y_f, currentNode.isActivity);
+            _innerRecursion(
+              right,
+              offsetRightMaxX + horizontalSpacing,
+              y_f,
+              x_f,
+              y_f,
+              currentNode.isActivity
+            );
           } else if (right.type === TYPE.finish) {
             _innerRecursion(
               right,
@@ -396,6 +455,7 @@ export default class RenderLogic extends Component {
         start.isActivity
       );
     }
+    return offsetRightMaxX;
   };
 
   getJson = () => {
@@ -415,7 +475,7 @@ export default class RenderLogic extends Component {
             label: node.label,
             parentId: node.parentId,
             tips: node.tips,
-            unitValue: node.unitValue,
+            unitValue: node.unitValue
           };
           o.children = _fn(node.id);
           list.push(o);
@@ -436,18 +496,24 @@ export default class RenderLogic extends Component {
     const dd = {
       [LOGIC_TYPE.or]: "||",
       [LOGIC_TYPE.and]: "&&",
-      [LOGIC_TYPE.none]: "",
+      [LOGIC_TYPE.none]: ""
     };
     const arr = [];
     if (data.children.length === 0) {
       const { unitValue, mockValue } = data;
-      return `${mockValue} ${symbolMap[unitValue.expression]} ${unitValue.rightValue}`;
+      return `${mockValue} ${symbolMap[unitValue.expression]} ${
+        unitValue.rightValue
+      }`;
     }
     for (let i = 0; i < data.children.length; i++) {
       const child = data.children[i];
       if (child.type === LOGIC_TYPE.none) {
         const { unitValue, mockValue } = child;
-        arr.push(`${mockValue} ${symbolMap[unitValue.expression]} ${unitValue.rightValue}`);
+        arr.push(
+          `${mockValue} ${symbolMap[unitValue.expression]} ${
+            unitValue.rightValue
+          }`
+        );
       }
       if (child.type === LOGIC_TYPE.or || child.type === LOGIC_TYPE.and) {
         arr.push(this.getResult(child, data.type));
@@ -466,13 +532,13 @@ export default class RenderLogic extends Component {
       if (item.type === TYPE.start) {
         return {
           ...item,
-          isActivity: true,
+          isActivity: true
         };
       }
       if (item.type === TYPE.rhombus) {
         return {
           ...item,
-          isActivity: this.computeActivity(item.logicUnitData),
+          isActivity: this.computeActivity(item.logicUnitData)
         };
       }
       return item;
@@ -490,7 +556,7 @@ export default class RenderLogic extends Component {
         }
         return {
           ...item,
-          isActivity: isActivity,
+          isActivity: isActivity
         };
       }
       return item;
@@ -508,7 +574,7 @@ export default class RenderLogic extends Component {
         }
         return {
           ...item,
-          isActivity: isActivity,
+          isActivity: isActivity
         };
       }
       return item;
@@ -529,14 +595,26 @@ export default class RenderLogic extends Component {
     const { visible, currentLogicNode, data } = this.state;
     return (
       <Fragment>
-        {<RenderInput value={data} onChange={v => this.onChangeData(v)} onReset={this.onReset} />}
+        {
+          <RenderInput
+            value={data}
+            onChange={v => this.onChangeData(v)}
+            onReset={this.onReset}
+          />
+        }
         <div
           style={{
             position: "relative",
             borderTop: "2px solid #dfdfdf",
             margin: "10px 0 0 5px",
-          }}>
-          <svg id="svgId" width="100%" height="100vh" />
+            overflow: "auto"
+          }}
+        >
+          <svg
+            id="svgId"
+            width={maxWidth < 800 ? 800 : maxWidth}
+            height="100vh"
+          />
         </div>
         {visible && (
           <Modal
@@ -547,34 +625,51 @@ export default class RenderLogic extends Component {
             visible={visible}
             onCancel={() => this.setState({ visible: false })}
             onOk={() => {
-              const { data, currentLogicNode, inputValue, childContext } = this.state;
+              const {
+                data,
+                currentLogicNode,
+                inputValue,
+                childContext
+              } = this.state;
               if (childContext.getAllResult()) {
                 const changeData = data.map(item => {
-                  if (item.id === currentLogicNode.id && currentLogicNode.type === TYPE.rhombus) {
+                  if (
+                    item.id === currentLogicNode.id &&
+                    currentLogicNode.type === TYPE.rhombus
+                  ) {
                     if (!childContext.getAllResult()) return item;
-                    const { logicUnitData, expressStr } = childContext.getAllResult();
+                    const {
+                      logicUnitData,
+                      expressStr
+                    } = childContext.getAllResult();
                     return {
                       ...item,
                       condition: expressStr,
-                      logicUnitData: logicUnitData,
+                      logicUnitData: logicUnitData
                     };
                   }
-                  if (item.id === currentLogicNode.id && currentLogicNode.type === TYPE.finish) {
+                  if (
+                    item.id === currentLogicNode.id &&
+                    currentLogicNode.type === TYPE.finish
+                  ) {
                     return {
                       ...item,
                       label: inputValue,
-                      condition: inputValue,
+                      condition: inputValue
                     };
                   }
                   return item;
                 });
                 this.setState({ visible: false, data: changeData });
               }
-            }}>
+            }}
+          >
             {currentLogicNode.type === TYPE.finish && (
               <Fragment>
                 使用输入框模拟配置
-                <Input onChange={e => this.setState({ inputValue: e.target.value })} />
+                <Input
+                  onChange={e => this.setState({ inputValue: e.target.value })}
+                />
               </Fragment>
             )}
             {currentLogicNode.type === TYPE.rhombus && (
@@ -583,8 +678,9 @@ export default class RenderLogic extends Component {
                   position: "relative",
                   width: "100%",
                   height: 600,
-                  overflow: "auto",
-                }}>
+                  overflow: "auto"
+                }}
+              >
                 <RenderExpression
                   value={currentLogicNode.logicUnitData}
                   getChild={context => this.setState({ childContext: context })}
