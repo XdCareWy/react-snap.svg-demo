@@ -3,21 +3,38 @@ import { Modal, Input, Form, Select, Divider, Cascader } from "antd";
 import { channelOptions, valueTypeOptions, symbolMap, symbolTypeOptions} from "./constants";
 
 const apis = [
-  { id: 1, value: 1, label: "价格接口", url: "http://xxxxx.jd.com/price.do" },
+  { id: 1, value: 1, label: "数据接口", url: "http://xxxxx.jd.com/price.do" },
 ];
+//   isExpired: false, // 活动是否已过期
+//   hasTrialQualify: false, // 是否有试用资格
+//   isRealName: true, // 是否实名
+//   isWhite: true, // 是否小白不达标
+//   isSign: false // 是否签约
 // 模拟请求回来的数据
 const dynamicDataStructure = [
   {
-    value: "channelPrice",
-    label: "渠道",
+    value: "userInfo",
+    label: "用户信息",
     children: [
-      { value: "JDPrice", label: "京东价" },
-      { value: "TXPrice", label: "腾讯价" },
+      { value: "stageStatus", label: "用户身份" },
+      { value: "isSign", label: "签约" },
     ],
   },
   {
-    value: "jxiang",
-    label: "京享值",
+    value: "qualify",
+    label: "资格信息",
+    children: [
+      { value: "hasTrialQualify", label: "试用资格" },
+      { value: "isWhite", label: "白条信用" },
+      { value: "isRealName", label: "实名" },
+    ],
+  },
+  {
+    value: "activity",
+    label: "活动信息",
+    children: [
+      { value: "isExpired", label: "过期" },
+    ],
   },
 ];
 
